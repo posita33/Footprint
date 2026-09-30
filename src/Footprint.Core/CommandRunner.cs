@@ -40,6 +40,9 @@ public sealed class CommandRunner
             }
             else
             {
+                // Windows PowerShell writes redirected error and progress streams using the
+                // system ANSI code page, even when its normal output is configured as UTF-8.
+                start.StandardErrorEncoding = Encoding.GetEncoding((int)GetACP());
                 start.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
                     "WindowsPowerShell", "v1.0", "powershell.exe");
                 start.ArgumentList.Add("-NoLogo");
@@ -49,6 +52,7 @@ public sealed class CommandRunner
                 start.ArgumentList.Add("Text");
                 start.ArgumentList.Add("-EncodedCommand");
                 start.ArgumentList.Add(Convert.ToBase64String(Encoding.Unicode.GetBytes(
+                    "$ProgressPreference = 'SilentlyContinue'; " +
                     "[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding; " +
                     "$OutputEncoding = [Console]::OutputEncoding;\n" + record.Command)));
             }
@@ -99,4 +103,7 @@ public sealed class CommandRunner
 
     [DllImport("kernel32.dll")]
     private static extern uint GetOEMCP();
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetACP();
 }
