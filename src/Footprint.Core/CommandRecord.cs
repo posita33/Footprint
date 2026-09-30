@@ -13,7 +13,9 @@ public sealed class CommandRecord
     public ExecutionStatus Status { get; set; }
     public int? ExitCode { get; set; }
     public string Output { get; set; } = "";
+    public bool IsFavorite { get; set; }
     public string ShellLabel => Shell == ShellKind.CommandPrompt ? "CMD" : "PowerShell";
+    public string FavoriteLabel => IsFavorite ? "★" : "";
     public string TimeLabel => StartedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm:ss");
     public string ResultLabel => Status switch
     {

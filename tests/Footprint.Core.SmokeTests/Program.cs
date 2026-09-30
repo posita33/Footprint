@@ -15,10 +15,12 @@ try
     record.Status = ExecutionStatus.Completed;
     record.ExitCode = 7;
     record.Output = "こんにちは\n";
+    record.IsFavorite = true;
     await store.SaveAsync(record);
     var (records, skipped) = await store.LoadAsync();
     Require(records.Count == 1 && skipped == 0, "Updating must not duplicate history.");
-    Require(records[0].Output == record.Output && records[0].ExitCode == 7, "Result must survive reload.");
+    Require(records[0].Output == record.Output && records[0].ExitCode == 7 && records[0].IsFavorite,
+        "Result and favorite status must survive reload.");
     Require(records[0].Matches("POWERSHELL") && records[0].Matches("こんにちは"), "Search must match shell and command.");
     await File.WriteAllTextAsync(Path.Combine(directory, "broken.json"), "not json");
     await File.WriteAllTextAsync(Path.Combine(directory, "null.json"), "null");
@@ -26,7 +28,7 @@ try
     Require(records.Count == 1 && skipped == 2, "Corrupt records must not hide valid history.");
     Require(File.Exists(Path.Combine(directory, "broken.json")), "Corrupt files must be preserved.");
     Require(!Directory.EnumerateFiles(directory, "*.tmp").Any(), "Temporary writes must be cleaned up.");
-    Console.WriteLine("PASS: persistence, update, Unicode, search, corrupt history, temporary cleanup");
+    Console.WriteLine("PASS: persistence, update, favorite status, Unicode, search, corrupt history, temporary cleanup");
     if (OperatingSystem.IsWindows())
     {
         var runner = new CommandRunner();
