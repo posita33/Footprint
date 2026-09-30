@@ -16,6 +16,26 @@ try
         "Output must stop at the limit and report truncation only once.");
     Require(displayedOutput.ToString() == outputRecord.Output, "Displayed and stored output must agree.");
     var store = new HistoryStore(directory);
+    var settingsPath = Path.Combine(directory, "Settings", "preferences.json");
+    var settingsStore = new AppearanceSettingsStore(settingsPath);
+    Require(settingsStore.Load().CommandFontSize == 12 && !settingsStore.Load().DarkTheme,
+        "A first launch must use the default appearance.");
+    settingsStore.Save(new AppearanceSettings { DarkTheme = true, CommandFontSize = 20 });
+    Require(settingsStore.Load() is { DarkTheme: true, CommandFontSize: 20 }, "Appearance settings must survive reload.");
+    try
+    {
+        settingsStore.Save(new AppearanceSettings { CommandFontSize = 100 });
+        throw new InvalidOperationException("Invalid appearance settings must be rejected.");
+    }
+    catch (ArgumentException) { }
+    Require(settingsStore.Load().CommandFontSize == 20, "A rejected save must retain the previous settings.");
+    await File.WriteAllTextAsync(settingsPath, "null");
+    try
+    {
+        settingsStore.Load();
+        throw new InvalidOperationException("Corrupt appearance data must be rejected.");
+    }
+    catch (System.Text.Json.JsonException) { }
     var sessionPath = Path.Combine(directory, "Session.json");
     var sessionStore = new WorkspaceSessionStore(sessionPath);
     Require(sessionStore.Load() is null, "First launch must not offer an empty saved session.");

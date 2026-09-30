@@ -1,0 +1,25 @@
+<Window x:Class="Footprint.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Footprint — 設定" Width="460" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WorkspaceBackground}">
+    <StackPanel Margin="20">
+        <TextBlock Text="テーマ" Foreground="{DynamicResource LabelForeground}" Margin="0,0,0,6" />
+        <ComboBox x:Name="ThemeBox" SelectedIndex="0" Padding="6">
+            <ComboBoxItem Content="ライト" /><ComboBoxItem Content="ダーク" />
+        </ComboBox>
+        <TextBlock Text="コマンド・出力の文字サイズ" Foreground="{DynamicResource LabelForeground}" Margin="0,18,0,6" />
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Right" Width="35" Text="{Binding Value, ElementName=FontSizeSlider, StringFormat={}{0:0}}"
+                       Foreground="{DynamicResource LabelForeground}" VerticalAlignment="Center" />
+            <Slider x:Name="FontSizeSlider" Minimum="12" Maximum="24" TickFrequency="1" IsSnapToTickEnabled="True" Value="12" />
+        </DockPanel>
+        <TextBlock Text="設定はすべてのウィンドウに反映し、次回起動時にも適用します。"
+                   Foreground="{DynamicResource LabelForeground}" TextWrapping="Wrap" Margin="0,14,0,0" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="標準に戻す" Click="Reset_Click" Padding="10,6" Margin="0,0,8,0" />
+            <Button Content="キャンセル" IsCancel="True" Padding="10,6" Margin="0,0,8,0" />
+            <Button Content="保存" Click="Save_Click" IsDefault="True" Padding="14,6" />
+        </StackPanel>
+    </StackPanel>
+</Window>
