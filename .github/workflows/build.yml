@@ -13,3 +13,4 @@ jobs:
           dotnet-version: '8.0.x'
       - run: dotnet build Footprint.sln --configuration Release
       - run: dotnet run --project tests/Footprint.Core.SmokeTests --configuration Release --no-build
+      - run: dotnet run --project tests/Footprint.Ui.SmokeTests --configuration Release
