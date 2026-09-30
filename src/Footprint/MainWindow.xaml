@@ -78,6 +78,9 @@
                         Width="28" Style="{StaticResource TabActionButtonStyle}" />
                 <Button x:Name="MergeTabsButton" Content="元のウィンドウにまとめる" Click="MergeTabs_Click"
                         Style="{StaticResource TabActionButtonStyle}" />
+                <Button x:Name="RestoreTabsButton" Content="復元" Click="RestoreTabs_Click"
+                        Visibility="Collapsed" ToolTip="前回終了時のタブを復元"
+                        Style="{StaticResource TabActionButtonStyle}" />
             </StackPanel>
         </StackPanel>
         <Border Grid.Row="1" Margin="0,-1,0,12" Padding="10"

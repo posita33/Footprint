@@ -54,6 +54,7 @@ public partial class MainWindow
     private void AddTab_Click(object sender, RoutedEventArgs e)
     {
         if (_cancellation is not null) return;
+        DismissSessionRestore();
         CaptureWorkspace();
         _workspaces.Add(new WorkspaceState { Title = NextWorkspaceTitle() });
         RefreshTabs(_workspaces.Count - 1);

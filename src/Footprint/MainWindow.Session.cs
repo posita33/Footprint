@@ -9,6 +9,7 @@ public partial class MainWindow
     private readonly WorkspaceSessionStore _sessionStore = new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Footprint", "Session.json"));
     private bool _sessionChecked;
+    private WorkspaceSession? _pendingSession;
 
     private void OfferSessionRestore()
     {
@@ -16,16 +17,27 @@ public partial class MainWindow
         _sessionChecked = true;
         try
         {
-            var session = _sessionStore.Load();
-            if (session is null) return;
-            if (MessageBox.Show(this, $"前回のタブ（{session.Workspaces.Count} 件）を復元しますか？",
-                "タブを復元", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-            _workspaces.Clear();
-            _workspaces.AddRange(session.Workspaces);
-            EnsureUniqueWorkspaceTitles();
-            RefreshTabs(session.ActiveIndex);
+            _pendingSession = _sessionStore.Load();
+            if (_pendingSession is not null) RestoreTabsButton.Visibility = Visibility.Visible;
         }
         catch (Exception error) { ShowError("前回のタブを読み込めませんでした。", error); }
+    }
+
+    private void RestoreTabs_Click(object sender, RoutedEventArgs e)
+    {
+        if (_cancellation is not null || _pendingSession is null) return;
+        var session = _pendingSession;
+        DismissSessionRestore();
+        _workspaces.Clear();
+        _workspaces.AddRange(session.Workspaces);
+        EnsureUniqueWorkspaceTitles();
+        RefreshTabs(session.ActiveIndex);
+    }
+
+    private void DismissSessionRestore()
+    {
+        _pendingSession = null;
+        RestoreTabsButton.Visibility = Visibility.Collapsed;
     }
 
     private void SaveWorkspaceSession()
