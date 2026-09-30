@@ -1,0 +1,45 @@
+name: Create release package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish self-contained Windows application
+        run: >
+          dotnet publish src/Footprint/Footprint.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          --output artifacts/publish/Footprint
+      - name: Create ZIP package
+        shell: pwsh
+        run: Compress-Archive -Path "artifacts/publish/Footprint/*" -DestinationPath "artifacts/Footprint-win-x64.zip"
+      - name: Upload release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Footprint-win-x64
+          path: artifacts/Footprint-win-x64.zip
+          if-no-files-found: error
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/Footprint-win-x64.zip

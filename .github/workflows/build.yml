@@ -1,0 +1,15 @@
+name: Windows build and smoke tests
+on:
+  push:
+  pull_request:
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet build Footprint.sln --configuration Release
+      - run: dotnet run --project tests/Footprint.Core.SmokeTests --configuration Release --no-build
