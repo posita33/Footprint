@@ -1,7 +1,7 @@
 <Window x:Class="Footprint.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Footprint — コマンド履歴" Width="1100" Height="800" MinWidth="780" MinHeight="620"
+        Title="Footprint — コマンド履歴" Icon="Assets/Footprint.ico" Width="1100" Height="800" MinWidth="780" MinHeight="620"
         Background="{DynamicResource WindowBackground}" Foreground="{DynamicResource LabelForeground}"
         Loaded="Window_Loaded" Closing="Window_Closing"
         AllowDrop="True" PreviewDragOver="Window_PreviewDragOver" PreviewDrop="Window_PreviewDrop"

@@ -6,8 +6,10 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ApplicationIcon>Assets/Footprint.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Resource Include="Assets/Footprint.ico" />
     <ProjectReference Include="../Footprint.Core/Footprint.Core.csproj" />
   </ItemGroup>
 </Project>
