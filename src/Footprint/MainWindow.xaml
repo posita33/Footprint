@@ -8,14 +8,14 @@
         <SolidColorBrush x:Key="WorkspaceBackground" Color="#F9FBFF" />
         <Style x:Key="WorkspaceTabStyle" TargetType="TabItem">
             <Setter Property="Height" Value="40" />
-            <Setter Property="Background" Value="#E6EBF1" />
-            <Setter Property="BorderBrush" Value="#808080" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Padding" Value="16,7" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
                         <Border x:Name="TabBorder" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0"
                                 CornerRadius="6,6,0,0" Padding="{TemplateBinding Padding}">
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -23,7 +23,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="{StaticResource WorkspaceBackground}" />
-                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,1,1,0" />
+                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="0" />
                                 <Setter TargetName="TabBorder" Property="Margin" Value="0,0,0,-4" />
                                 <Setter Property="Panel.ZIndex" Value="1" />
                             </Trigger>
