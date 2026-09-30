@@ -63,7 +63,7 @@
             </StackPanel>
         </StackPanel>
         <Border Grid.Row="1" Margin="0,-1,0,12" Padding="10"
-                BorderBrush="#808080" BorderThickness="1" Background="{StaticResource WorkspaceBackground}">
+                BorderThickness="0" Background="{StaticResource WorkspaceBackground}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
