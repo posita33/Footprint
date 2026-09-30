@@ -1,4 +1,4 @@
-namespace Footprint;
+namespace Footprint.Core;
 
 public sealed class WorkspaceState
 {
