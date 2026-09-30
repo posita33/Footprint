@@ -75,7 +75,7 @@ public sealed class HistoryStore(string directory)
             try
             {
                 var record = JsonSerializer.Deserialize<CommandRecord>(await File.ReadAllTextAsync(path), Options);
-                if (!IsValid(record))
+                if (record is null || !IsValid(record))
                     throw new JsonException("Invalid command record.");
                 records.Add(record);
             }
