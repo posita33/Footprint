@@ -108,7 +108,8 @@
                     </Grid.RowDefinitions>
                     <TextBlock Text="コマンド（複数行可）" Margin="0,0,0,4" />
                     <TextBox Grid.Row="1" x:Name="CommandBox" AcceptsReturn="True" AcceptsTab="True"
-                             FontFamily="Consolas" VerticalScrollBarVisibility="Auto" />
+                             FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
+                             PreviewKeyDown="CommandBox_PreviewKeyDown" />
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                         <Button x:Name="RunButton" Content="実行" Click="Run_Click" IsEnabled="False" />
                         <Button x:Name="StopButton" Content="停止" Click="Stop_Click" IsEnabled="False" />

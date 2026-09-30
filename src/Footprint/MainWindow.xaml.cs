@@ -185,6 +185,15 @@ public partial class MainWindow : Window
         SetRunning(false);
     }
 
+    private void CommandBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.Shift || _cancellation is not null)
+            return;
+
+        e.Handled = true;
+        Run_Click(this, new RoutedEventArgs());
+    }
+
     private async Task ExecuteAsync(CommandRecord record, CancellationToken cancellation)
     {
         try { await _store.SaveAsync(record); }
