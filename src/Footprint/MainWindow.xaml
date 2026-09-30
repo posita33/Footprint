@@ -15,10 +15,9 @@
     </Window.Resources>
     <Grid Margin="22">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /><RowDefinition Height="3*" />
             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
-            <RowDefinition Height="2*" /><RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" /><RowDefinition Height="3*" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="3*" /><RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Margin="0">
             <TextBlock Text="Footprint" FontSize="28" FontWeight="Bold" Foreground="#243B53" />
@@ -31,38 +30,44 @@
                 <Button x:Name="MergeTabsButton" Content="元のウィンドウにまとめる" Click="MergeTabs_Click" />
             </StackPanel>
         </StackPanel>
-        <Border Grid.Row="1" Grid.RowSpan="4" Margin="0,5,0,4"
-                BorderBrush="#A6A6A6" BorderThickness="1" CornerRadius="4" Background="#F9FBFF"
-                IsHitTestVisible="False" />
-        <Grid Grid.Row="1" Margin="0,0,0,10">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-            <StackPanel Margin="0,0,12,0">
-                <TextBlock Text="シェル" Margin="0,0,0,4" />
-                <ComboBox x:Name="ShellBox" SelectedIndex="0" Padding="6">
-                    <ComboBoxItem Content="コマンドプロンプト" /><ComboBoxItem Content="Windows PowerShell" />
-                </ComboBox>
-            </StackPanel>
-            <StackPanel Grid.Column="1">
-                <TextBlock Text="作業フォルダー（フォルダーをドラッグ＆ドロップできます）" Margin="0,0,0,4" />
-                <TextBox x:Name="DirectoryBox" />
-            </StackPanel>
-        </Grid>
-        <StackPanel Grid.Row="2">
-            <TextBlock Text="コマンド（複数行可）" Margin="0,0,0,4" />
-            <TextBox x:Name="CommandBox" Height="85" AcceptsReturn="True" AcceptsTab="True"
-                     FontFamily="Consolas" VerticalScrollBarVisibility="Auto" />
-        </StackPanel>
-        <DockPanel Grid.Row="3" Margin="0,10">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button x:Name="RunButton" Content="実行" Click="Run_Click" IsEnabled="False" />
-                <Button x:Name="StopButton" Content="停止" Click="Stop_Click" IsEnabled="False" />
-            </StackPanel>
-            <TextBlock Text="出力" VerticalAlignment="Center" FontWeight="SemiBold" />
-        </DockPanel>
-        <TextBox Grid.Row="4" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
-                 Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
-        <DockPanel Grid.Row="5" Margin="0,15,0,8">
+        <Border Grid.Row="1" Margin="0,5,0,12" Padding="10"
+                BorderBrush="#808080" BorderThickness="1" Background="#F9FBFF">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" /><RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="シェル" Margin="0,0,0,4" />
+                        <ComboBox x:Name="ShellBox" SelectedIndex="0" Padding="6">
+                            <ComboBoxItem Content="コマンドプロンプト" /><ComboBoxItem Content="Windows PowerShell" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="作業フォルダー（フォルダーをドラッグ＆ドロップできます）" Margin="0,0,0,4" />
+                        <TextBox x:Name="DirectoryBox" />
+                    </StackPanel>
+                </Grid>
+                <StackPanel Grid.Row="1">
+                    <TextBlock Text="コマンド（複数行可）" Margin="0,0,0,4" />
+                    <TextBox x:Name="CommandBox" Height="85" AcceptsReturn="True" AcceptsTab="True"
+                             FontFamily="Consolas" VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+                <DockPanel Grid.Row="2" Margin="0,10">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                        <Button x:Name="RunButton" Content="実行" Click="Run_Click" IsEnabled="False" />
+                        <Button x:Name="StopButton" Content="停止" Click="Stop_Click" IsEnabled="False" />
+                    </StackPanel>
+                    <TextBlock Text="出力" VerticalAlignment="Center" FontWeight="SemiBold" />
+                </DockPanel>
+                <TextBox Grid.Row="3" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
+                         Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+            </Grid>
+        </Border>
+        <DockPanel Grid.Row="2" Margin="0,0,0,8">
             <TextBlock Text="履歴" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                 <Button x:Name="FavoriteButton" Content="☆ お気に入り" Click="Favorite_Click" IsEnabled="False" />
@@ -72,7 +77,7 @@
                       VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
             <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索" />
         </DockPanel>
-        <DockPanel Grid.Row="6" Margin="0,0,0,8">
+        <DockPanel Grid.Row="3" Margin="0,0,0,8">
             <TextBlock Text="バックアップ" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                 <Button x:Name="CreateBackupButton" Content="今日のバックアップを保存" Click="CreateBackup_Click" IsEnabled="False" />
@@ -82,7 +87,7 @@
             <ComboBox x:Name="BackupDateBox" MinWidth="135" Padding="6" SelectionChanged="BackupDate_SelectionChanged"
                       ToolTip="復元する日別バックアップを選択" />
         </DockPanel>
-        <DataGrid Grid.Row="7" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
+        <DataGrid Grid.Row="4" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
                   SelectionChanged="History_SelectionChanged" MouseDoubleClick="History_DoubleClick">
             <DataGrid.Columns>
@@ -94,7 +99,7 @@
                 <DataGridTextColumn Header="結果" Binding="{Binding ResultLabel}" Width="100" />
             </DataGrid.Columns>
         </DataGrid>
-        <TextBlock Grid.Row="8" x:Name="StatusText" Text="履歴を読み込んでいます…" Margin="0,10,0,0"
+        <TextBlock Grid.Row="5" x:Name="StatusText" Text="履歴を読み込んでいます…" Margin="0,10,0,0"
                    Foreground="#526579" TextWrapping="Wrap" />
     </Grid>
 </Window>
