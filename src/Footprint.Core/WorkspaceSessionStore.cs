@@ -6,6 +6,19 @@ public sealed class WorkspaceSession
 {
     public List<WorkspaceState> Workspaces { get; set; } = [];
     public int ActiveIndex { get; set; }
+    public WindowPlacement? Window { get; set; }
+}
+
+public sealed class WindowPlacement
+{
+    public double Left { get; set; }
+    public double Top { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public bool Maximized { get; set; }
+
+    public bool IsValid => double.IsFinite(Left) && double.IsFinite(Top) &&
+        double.IsFinite(Width) && double.IsFinite(Height) && Width > 0 && Height > 0;
 }
 
 public sealed class WorkspaceSessionStore(string path)

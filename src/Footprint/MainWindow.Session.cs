@@ -18,7 +18,11 @@ public partial class MainWindow
         try
         {
             _pendingSession = _sessionStore.Load();
-            if (_pendingSession is not null) RestoreTabsButton.Visibility = Visibility.Visible;
+            if (_pendingSession is not null)
+            {
+                WindowPosition.Restore(this, _pendingSession.Window);
+                RestoreTabsButton.Visibility = Visibility.Visible;
+            }
         }
         catch (Exception error) { ShowError("前回のタブを読み込めませんでした。", error); }
     }
@@ -52,7 +56,12 @@ public partial class MainWindow
         }
         try
         {
-            _sessionStore.Save(new WorkspaceSession { Workspaces = workspaces, ActiveIndex = _activeWorkspaceIndex });
+            _sessionStore.Save(new WorkspaceSession
+            {
+                Workspaces = workspaces,
+                ActiveIndex = _activeWorkspaceIndex,
+                Window = WindowPosition.Capture(this)
+            });
         }
         catch (Exception error) { ShowError("タブの状態を保存できませんでした。", error); }
     }
