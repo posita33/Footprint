@@ -1,0 +1,24 @@
+<Window x:Class="Footprint.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Footprint — ヘルプ" Width="650" Height="620" MinWidth="450" MinHeight="350"
+        WindowStartupLocation="CenterOwner" Background="#F9FBFF">
+    <DockPanel Margin="20">
+        <Button Content="閉じる" IsCancel="True" DockPanel.Dock="Bottom"
+                HorizontalAlignment="Right" Padding="20,6" Margin="0,12,0,0" />
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="ショートカット" FontSize="20" FontWeight="Bold" Margin="0,0,0,12" />
+                <TextBlock TextWrapping="Wrap" FontSize="14" Text="F1：このヘルプを開く&#x0a;Shift + Enter：コマンド入力欄で実行&#x0a;Enter：コマンド入力欄で改行&#x0a;Ctrl + T：タブを追加&#x0a;Ctrl + W：現在のタブを閉じる（最後のタブは残す）&#x0a;Ctrl + Tab：次のタブへ移動&#x0a;Ctrl + Shift + Tab：前のタブへ移動&#x0a;Ctrl + F：履歴検索欄へ移動" />
+                <TextBlock Text="コマンドと出力" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
+                <TextBlock TextWrapping="Wrap" Text="シェル・作業フォルダー・コマンドを指定して実行します。フォルダーはドラッグ＆ドロップでも指定できます。「停止」で実行を終了します。実行中は入力変更とタブ操作ができません。「出力をコピー」で表示中の結果をコピーできます。境界のバーを上下にドラッグすると、コマンド・出力・履歴の高さを調整できます。" />
+                <TextBlock Text="履歴とバックアップ" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
+                <TextBlock TextWrapping="Wrap" Text="履歴を選択すると保存済みの出力を表示します。再実行はしません。「入力に戻す」またはダブルクリックでコマンドを再利用できます。検索、お気に入り、日別バックアップの保存と復元に対応しています。「お気に入り以外を削除」の前にはバックアップを保存します。日付が変わった最初の起動でも自動バックアップを取ります。" />
+                <TextBlock Text="タブと起動時の復元" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
+                <TextBlock TextWrapping="Wrap" Text="タブをウィンドウ外へドラッグすると別ウィンドウになり、「元のウィンドウにまとめる」で戻せます。履歴はすべてのタブで共有です。終了時のタブは次回起動時に「復元」で戻せます。「復元」または「＋」を押すと復元ボタンは消えます。ウィンドウ位置とサイズは起動時に自動で復元します。" />
+                <TextBlock Text="保存先と注意" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
+                <TextBlock TextWrapping="Wrap" Text="履歴：%LOCALAPPDATA%\Footprint\History&#x0a;バックアップ：History\Backups&#x0a;タブとウィンドウ：%LOCALAPPDATA%\Footprint\Session.json&#x0a;&#x0a;「履歴フォルダーを開く」で保存先を開けます。コマンドと出力は平文で保存されるため、パスワードやトークンを入力しないでください。各実行は独立したシェルで、cd・変数・プロファイルは次の実行に引き継ぎません。対話入力が必要なコマンドには対応していません。出力の保存は先頭約100,000文字までです。" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
