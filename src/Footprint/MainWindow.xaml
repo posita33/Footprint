@@ -106,7 +106,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Text="コマンド（複数行可）" Margin="0,0,0,4" />
+                    <TextBlock Text="コマンド（複数行可・Shift + Enter で実行）" Margin="0,0,0,4" />
                     <TextBox Grid.Row="1" x:Name="CommandBox" AcceptsReturn="True" AcceptsTab="True"
                              FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                              PreviewKeyDown="CommandBox_PreviewKeyDown" />
