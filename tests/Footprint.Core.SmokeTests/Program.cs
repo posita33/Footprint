@@ -32,6 +32,11 @@ try
     var backup = await store.LoadDailyBackupAsync(backupDate);
     Require(backup.Count == 1 && backup[0].IsFavorite && backup[0].Output == "こんにちは\n",
         "Existing daily backup must be preserved.");
+    var nextBackupDate = backupDate.AddDays(1);
+    await store.EnsureDailyBackupAsync([record], nextBackupDate);
+    var nextBackup = await store.LoadDailyBackupAsync(nextBackupDate);
+    Require(nextBackup.Count == 1 && !nextBackup[0].IsFavorite && nextBackup[0].Output == "new output",
+        "The first launch on a new date must save a new backup.");
     var extra = new CommandRecord { Command = "extra", WorkingDirectory = directory, Shell = ShellKind.PowerShell };
     await store.SaveAsync(extra);
     await store.ReplaceAsync([record, extra], backup);
@@ -43,7 +48,7 @@ try
     Require(records.Count == 1 && skipped == 2, "Corrupt records must not hide valid history.");
     Require(File.Exists(Path.Combine(directory, "broken.json")), "Corrupt files must be preserved.");
     Require(!Directory.EnumerateFiles(directory, "*.tmp").Any(), "Temporary writes must be cleaned up.");
-    Console.WriteLine("PASS: persistence, update, favorite status, daily backup, restore, Unicode, search, corrupt history, temporary cleanup");
+    Console.WriteLine("PASS: persistence, update, favorite status, daily backup on date change, restore, Unicode, search, corrupt history, temporary cleanup");
     if (OperatingSystem.IsWindows())
     {
         var runner = new CommandRunner();

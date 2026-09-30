@@ -33,6 +33,7 @@ public partial class MainWindow : Window
         try
         {
             (_history, _skipped) = await _store.LoadAsync();
+            // The first launch on a new date keeps a snapshot before the user changes history.
             await _store.EnsureDailyBackupAsync(_history, DateOnly.FromDateTime(DateTime.Today));
             await LoadBackupDatesAsync();
             RefreshHistory();
