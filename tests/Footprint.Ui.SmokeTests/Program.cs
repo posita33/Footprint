@@ -11,6 +11,8 @@ internal static class Program
         var app = new App();
         app.InitializeComponent();
         var window = new MainWindow();
+        Require(window.Icon is { Width: > 0 } && new HelpWindow().Icon is { Width: > 0 } &&
+            new SettingsWindow().Icon is { Width: > 0 }, "Window icons must load from embedded WPF resources.");
         var layout = (Grid)window.FindName("LayoutGrid");
         var panel = (Grid)window.FindName("HistoryPanel");
         var splitter = (GridSplitter)window.FindName("HistorySplitter");
