@@ -16,6 +16,38 @@ try
         "Output must stop at the limit and report truncation only once.");
     Require(displayedOutput.ToString() == outputRecord.Output, "Displayed and stored output must agree.");
     var store = new HistoryStore(directory);
+    var sessionPath = Path.Combine(directory, "Session.json");
+    var sessionStore = new WorkspaceSessionStore(sessionPath);
+    Require(sessionStore.Load() is null, "First launch must not offer an empty saved session.");
+    sessionStore.Save(new WorkspaceSession
+    {
+        ActiveIndex = 1,
+        Window = new WindowPlacement { Left = -1200, Top = 80, Width = 1100, Height = 800, Maximized = true },
+        Workspaces =
+        [
+            new WorkspaceState { Title = "タブ 1", Command = "echo hello", WorkingDirectory = directory },
+            new WorkspaceState { Title = "タブ 2", ShellIndex = 1, Command = "Write-Output '日本語'", Output = "日本語\n", WorkingDirectory = directory }
+        ]
+    });
+    var restored = sessionStore.Load()!;
+    Require(restored.Window is { Left: -1200, Top: 80, Width: 1100, Height: 800, Maximized: true },
+        "Session must preserve window position, size and maximized state.");
+    Require(restored.ActiveIndex == 1 && restored.Workspaces.Count == 2 &&
+        restored.Workspaces[1].ShellIndex == 1 && restored.Workspaces[1].Output == "日本語\n" &&
+        restored.Workspaces[1].Command == "Write-Output '日本語'" && restored.Workspaces[1].WorkingDirectory == directory,
+        "Session restore must preserve tabs, selected tab, shell, folder, command and Unicode output.");
+    sessionStore.Save(new WorkspaceSession { Workspaces = [restored.Workspaces[0]] });
+    Require(sessionStore.Load()!.Workspaces.Count == 1, "Saving a session must replace the previous tabs.");
+    Require(sessionStore.Load()!.Window is null, "Sessions without window placement must remain readable.");
+    await File.WriteAllTextAsync(sessionPath, "{\"Workspaces\":null}");
+    try
+    {
+        sessionStore.Load();
+        throw new InvalidOperationException("Invalid session data must be rejected.");
+    }
+    catch (System.Text.Json.JsonException) { }
+    Require(File.Exists(sessionPath), "Invalid session data must be preserved.");
+    File.Delete(sessionPath);
     var record = new CommandRecord
     {
         Command = "Write-Output 'こんにちは'",

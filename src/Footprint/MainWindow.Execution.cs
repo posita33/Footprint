@@ -97,6 +97,7 @@ public partial class MainWindow
     private void SetRunning(bool running)
     {
         RunButton.IsEnabled = !running;
+        RestoreTabsButton.IsEnabled = !running;
         StopButton.IsEnabled = running;
         FavoriteButton.IsEnabled = !running && HistoryGrid.SelectedItem is CommandRecord;
         FavoritesOnlyBox.IsEnabled = !running;
