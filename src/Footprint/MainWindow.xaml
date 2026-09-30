@@ -18,7 +18,7 @@
             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
             <RowDefinition Height="2*" /><RowDefinition Height="Auto" />
-            <RowDefinition Height="3*" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" /><RowDefinition Height="3*" /><RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Margin="0,0,0,15">
             <TextBlock Text="Footprint" FontSize="28" FontWeight="Bold" Foreground="#243B53" />
@@ -62,7 +62,17 @@
                       VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
             <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索" />
         </DockPanel>
-        <DataGrid Grid.Row="6" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
+        <DockPanel Grid.Row="6" Margin="0,0,0,8">
+            <TextBlock Text="バックアップ" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                <Button x:Name="CreateBackupButton" Content="今日のバックアップを保存" Click="CreateBackup_Click" IsEnabled="False" />
+                <Button x:Name="RestoreBackupButton" Content="選択した日付から復元" Click="RestoreBackup_Click" IsEnabled="False" />
+                <Button x:Name="ClearNonFavoriteButton" Content="お気に入り以外を削除" Click="ClearNonFavorite_Click" IsEnabled="False" />
+            </StackPanel>
+            <ComboBox x:Name="BackupDateBox" MinWidth="135" Padding="6" SelectionChanged="BackupDate_SelectionChanged"
+                      ToolTip="復元する日別バックアップを選択" />
+        </DockPanel>
+        <DataGrid Grid.Row="7" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
                   SelectionChanged="History_SelectionChanged" MouseDoubleClick="History_DoubleClick">
             <DataGrid.Columns>
@@ -74,7 +84,7 @@
                 <DataGridTextColumn Header="結果" Binding="{Binding ResultLabel}" Width="100" />
             </DataGrid.Columns>
         </DataGrid>
-        <TextBlock Grid.Row="7" x:Name="StatusText" Text="履歴を読み込んでいます…" Margin="0,10,0,0"
+        <TextBlock Grid.Row="8" x:Name="StatusText" Text="履歴を読み込んでいます…" Margin="0,10,0,0"
                    Foreground="#526579" TextWrapping="Wrap" />
     </Grid>
 </Window>
