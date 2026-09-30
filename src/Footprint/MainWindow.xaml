@@ -5,6 +5,31 @@
         Background="#F5F7FA" Loaded="Window_Loaded" Closing="Window_Closing"
         AllowDrop="True" PreviewDragOver="Window_PreviewDragOver" PreviewDrop="Window_PreviewDrop">
     <Window.Resources>
+        <SolidColorBrush x:Key="WorkspaceBackground" Color="#F9FBFF" />
+        <Style x:Key="WorkspaceTabStyle" TargetType="TabItem">
+            <Setter Property="Background" Value="#E6EBF1" />
+            <Setter Property="BorderBrush" Value="#808080" />
+            <Setter Property="Padding" Value="16,7" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                CornerRadius="6,6,0,0" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{StaticResource WorkspaceBackground}" />
+                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,1,1,0" />
+                                <Setter Property="Panel.ZIndex" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="Button">
             <Setter Property="Padding" Value="14,7" />
             <Setter Property="Margin" Value="4,0" />
@@ -19,19 +44,26 @@
             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
             <RowDefinition Height="3*" /><RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Margin="0">
+        <StackPanel Margin="0" Panel.ZIndex="1">
             <TextBlock Text="Footprint" FontSize="28" FontWeight="Bold" Foreground="#243B53" />
             <TextBlock Text="実行したコマンドを記録して、もう一度使う。" Foreground="#526579" Margin="0,5,0,0" />
             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                <TabControl x:Name="WorkspaceTabs" Height="32" SelectionChanged="WorkspaceTabs_SelectionChanged"
-                            PreviewMouseMove="WorkspaceTabs_PreviewMouseMove" HorizontalAlignment="Left" />
+                <TabControl x:Name="WorkspaceTabs" Height="36" SelectionChanged="WorkspaceTabs_SelectionChanged"
+                            PreviewMouseMove="WorkspaceTabs_PreviewMouseMove" HorizontalAlignment="Left"
+                            ItemContainerStyle="{StaticResource WorkspaceTabStyle}">
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="TabControl">
+                            <TabPanel IsItemsHost="True" />
+                        </ControlTemplate>
+                    </TabControl.Template>
+                </TabControl>
                 <Button Content="＋" Click="AddTab_Click" ToolTip="タブを追加" />
                 <Button x:Name="CloseTabButton" Content="×" Click="CloseTab_Click" ToolTip="現在のタブを閉じる" />
                 <Button x:Name="MergeTabsButton" Content="元のウィンドウにまとめる" Click="MergeTabs_Click" />
             </StackPanel>
         </StackPanel>
-        <Border Grid.Row="1" Margin="0,5,0,12" Padding="10"
-                BorderBrush="#808080" BorderThickness="1" Background="#F9FBFF">
+        <Border Grid.Row="1" Margin="0,-1,0,12" Padding="10"
+                BorderBrush="#808080" BorderThickness="1" Background="{StaticResource WorkspaceBackground}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
