@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Footprint — コマンド履歴" Width="1100" Height="800" MinWidth="780" MinHeight="620"
         Background="#DCE2EA" Loaded="Window_Loaded" Closing="Window_Closing"
-        AllowDrop="True" PreviewDragOver="Window_PreviewDragOver" PreviewDrop="Window_PreviewDrop">
+        AllowDrop="True" PreviewDragOver="Window_PreviewDragOver" PreviewDrop="Window_PreviewDrop"
+        PreviewKeyDown="Window_PreviewKeyDown">
     <Window.Resources>
         <SolidColorBrush x:Key="WorkspaceBackground" Color="#F9FBFF" />
         <Style x:Key="WorkspaceTabStyle" TargetType="TabItem">
@@ -72,9 +73,9 @@
                         </ControlTemplate>
                     </TabControl.Template>
                 </TabControl>
-                <Button Content="＋" Click="AddTab_Click" ToolTip="タブを追加"
+                <Button Content="＋" Click="AddTab_Click" ToolTip="タブを追加（Ctrl + T）"
                         Width="28" Style="{StaticResource TabActionButtonStyle}" />
-                <Button x:Name="CloseTabButton" Content="×" Click="CloseTab_Click" ToolTip="現在のタブを閉じる"
+                <Button x:Name="CloseTabButton" Content="×" Click="CloseTab_Click" ToolTip="現在のタブを閉じる（Ctrl + W）"
                         Width="28" Style="{StaticResource TabActionButtonStyle}" />
                 <Button x:Name="MergeTabsButton" Content="元のウィンドウにまとめる" Click="MergeTabs_Click"
                         Style="{StaticResource TabActionButtonStyle}" />
@@ -146,7 +147,7 @@
                 </StackPanel>
                 <CheckBox x:Name="FavoritesOnlyBox" Content="お気に入りのみ" Margin="0,0,12,0"
                           VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
-                <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索" />
+                <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索（Ctrl + F）" />
             </DockPanel>
             <DockPanel Grid.Row="1" Margin="0,0,0,8">
                 <TextBlock Text="バックアップ" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
