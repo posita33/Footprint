@@ -55,9 +55,11 @@
     </Window.Resources>
     <Grid Margin="22">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" /><RowDefinition Height="3*" />
-            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
-            <RowDefinition Height="3*" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="3*" MinHeight="220" />
+            <RowDefinition Height="8" />
+            <RowDefinition Height="3*" MinHeight="160" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Margin="0" Panel.ZIndex="1">
             <StackPanel Orientation="Horizontal" Height="40">
@@ -82,8 +84,10 @@
                 BorderThickness="0" Background="{StaticResource WorkspaceBackground}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" /><RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="2*" MinHeight="90" />
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="3*" MinHeight="100" />
                 </Grid.RowDefinitions>
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -98,56 +102,71 @@
                         <TextBox x:Name="DirectoryBox" />
                     </StackPanel>
                 </Grid>
-                <StackPanel Grid.Row="1">
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <TextBlock Text="コマンド（複数行可）" Margin="0,0,0,4" />
-                    <TextBox x:Name="CommandBox" Height="85" AcceptsReturn="True" AcceptsTab="True"
+                    <TextBox Grid.Row="1" x:Name="CommandBox" AcceptsReturn="True" AcceptsTab="True"
                              FontFamily="Consolas" VerticalScrollBarVisibility="Auto" />
-                </StackPanel>
-                <DockPanel Grid.Row="2" Margin="0,10">
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                         <Button x:Name="RunButton" Content="実行" Click="Run_Click" IsEnabled="False" />
                         <Button x:Name="StopButton" Content="停止" Click="Stop_Click" IsEnabled="False" />
                     </StackPanel>
-                    <TextBlock Text="出力" VerticalAlignment="Center" FontWeight="SemiBold" />
-                </DockPanel>
-                <TextBox Grid.Row="3" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
-                         Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+                </Grid>
+                <GridSplitter Grid.Row="2" Height="8" HorizontalAlignment="Stretch"
+                              ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
+                              Background="#DCE2EA" Cursor="SizeNS" />
+                <Grid Grid.Row="3">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <TextBlock Text="出力" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBox Grid.Row="1" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
+                             Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+                </Grid>
             </Grid>
         </Border>
-        <DockPanel Grid.Row="2" Margin="0,0,0,8">
-            <TextBlock Text="履歴" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button x:Name="FavoriteButton" Content="☆ お気に入り" Click="Favorite_Click" IsEnabled="False" />
-                <Button Content="入力に戻す" Click="Reuse_Click" /><Button Content="コピー" Click="Copy_Click" />
-            </StackPanel>
-            <CheckBox x:Name="FavoritesOnlyBox" Content="お気に入りのみ" Margin="0,0,12,0"
-                      VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
-            <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索" />
-        </DockPanel>
-        <DockPanel Grid.Row="3" Margin="0,0,0,8">
-            <TextBlock Text="バックアップ" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button x:Name="CreateBackupButton" Content="今日のバックアップを保存" Click="CreateBackup_Click" IsEnabled="False" />
-                <Button x:Name="RestoreBackupButton" Content="選択した日付から復元" Click="RestoreBackup_Click" IsEnabled="False" />
-                <Button x:Name="ClearNonFavoriteButton" Content="お気に入り以外を削除" Click="ClearNonFavorite_Click" IsEnabled="False" />
-            </StackPanel>
-            <ComboBox x:Name="BackupDateBox" MinWidth="135" Padding="6" SelectionChanged="BackupDate_SelectionChanged"
-                      ToolTip="復元する日別バックアップを選択" />
-        </DockPanel>
-        <DataGrid Grid.Row="4" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
-                  SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
-                  SelectionChanged="History_SelectionChanged" MouseDoubleClick="History_DoubleClick">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="★" Binding="{Binding FavoriteLabel}" Width="35" />
-                <DataGridTextColumn Header="実行日時" Binding="{Binding TimeLabel}" Width="150" />
-                <DataGridTextColumn Header="シェル" Binding="{Binding ShellLabel}" Width="95" />
-                <DataGridTextColumn Header="コマンド" Binding="{Binding Command}" Width="*" />
-                <DataGridTextColumn Header="作業フォルダー" Binding="{Binding WorkingDirectory}" Width="180" />
-                <DataGridTextColumn Header="結果" Binding="{Binding ResultLabel}" Width="100" />
-            </DataGrid.Columns>
-        </DataGrid>
-        <TextBlock Grid.Row="5" x:Name="StatusText" Text="履歴を読み込んでいます…" Margin="0,10,0,0"
+        <GridSplitter Grid.Row="2" Height="8" HorizontalAlignment="Stretch"
+                      ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
+                      Background="#B6C1CE" Cursor="SizeNS" />
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,8">
+                <TextBlock Text="履歴" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <Button x:Name="FavoriteButton" Content="☆ お気に入り" Click="Favorite_Click" IsEnabled="False" />
+                    <Button Content="入力に戻す" Click="Reuse_Click" /><Button Content="コピー" Click="Copy_Click" />
+                </StackPanel>
+                <CheckBox x:Name="FavoritesOnlyBox" Content="お気に入りのみ" Margin="0,0,12,0"
+                          VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
+                <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索" />
+            </DockPanel>
+            <DockPanel Grid.Row="1" Margin="0,0,0,8">
+                <TextBlock Text="バックアップ" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <Button x:Name="CreateBackupButton" Content="今日のバックアップを保存" Click="CreateBackup_Click" IsEnabled="False" />
+                    <Button x:Name="RestoreBackupButton" Content="選択した日付から復元" Click="RestoreBackup_Click" IsEnabled="False" />
+                    <Button x:Name="ClearNonFavoriteButton" Content="お気に入り以外を削除" Click="ClearNonFavorite_Click" IsEnabled="False" />
+                </StackPanel>
+                <ComboBox x:Name="BackupDateBox" MinWidth="135" Padding="6" SelectionChanged="BackupDate_SelectionChanged"
+                          ToolTip="復元する日別バックアップを選択" />
+            </DockPanel>
+            <DataGrid Grid.Row="2" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                      SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
+                      SelectionChanged="History_SelectionChanged" MouseDoubleClick="History_DoubleClick">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="★" Binding="{Binding FavoriteLabel}" Width="35" />
+                    <DataGridTextColumn Header="実行日時" Binding="{Binding TimeLabel}" Width="150" />
+                    <DataGridTextColumn Header="シェル" Binding="{Binding ShellLabel}" Width="95" />
+                    <DataGridTextColumn Header="コマンド" Binding="{Binding Command}" Width="*" />
+                    <DataGridTextColumn Header="作業フォルダー" Binding="{Binding WorkingDirectory}" Width="180" />
+                    <DataGridTextColumn Header="結果" Binding="{Binding ResultLabel}" Width="100" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <TextBlock Grid.Row="4" x:Name="StatusText" Text="履歴を読み込んでいます…" Margin="0,10,0,0"
                    Foreground="#526579" TextWrapping="Wrap" />
     </Grid>
 </Window>
