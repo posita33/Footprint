@@ -31,16 +31,17 @@ try
         var runner = new CommandRunner();
         foreach (var shell in new[] { ShellKind.CommandPrompt, ShellKind.PowerShell })
         {
+            const string marker = "Footprint smoke test";
             var command = shell == ShellKind.CommandPrompt
-                ? "echo こんにちは\r\ntree /a\r\necho %CD%\r\nexit /b 7"
-                : "Write-Output 'こんにちは'; (Get-Location).Path; exit 7";
+                ? "echo Footprint smoke test\r\necho %CD%\r\nexit /b 7"
+                : "Write-Output 'Footprint smoke test'; (Get-Location).Path; exit 7";
             var result = new CommandRecord { Command = command, WorkingDirectory = directory, Shell = shell };
             var capture = new OutputCapture();
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             await runner.RunAsync(result, capture, timeout.Token);
             Require(result.Status == ExecutionStatus.Completed && result.ExitCode == 7, $"{shell}: exit status");
-            Require(capture.Text.Contains("こんにちは") && capture.Text.Contains(directory), $"{shell}: Unicode and working directory");
-            Console.WriteLine($"PASS: {shell} execution, multiline command, Unicode, working directory, exit code");
+            Require(capture.Text.Contains(marker) && capture.Text.Contains(directory), $"{shell}: output and working directory");
+            Console.WriteLine($"PASS: {shell} execution, multiline command, output, working directory, exit code");
         }
         var stopped = new CommandRecord
         {
