@@ -21,6 +21,13 @@
                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsSelected" Value="False" />
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="#E8EDF4" />
+                            </MultiTrigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="{StaticResource WorkspaceBackground}" />
                                 <Setter TargetName="TabBorder" Property="BorderThickness" Value="0" />
