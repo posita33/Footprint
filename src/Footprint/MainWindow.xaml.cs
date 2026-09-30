@@ -107,8 +107,37 @@ public partial class MainWindow : Window
     {
         if (_cancellation is not null) return;
         CaptureWorkspace();
-        _workspaces.Add(new WorkspaceState { Title = $"タブ {_workspaces.Count + 1}" });
+        _workspaces.Add(new WorkspaceState { Title = NextWorkspaceTitle() });
         RefreshTabs(_workspaces.Count - 1);
+    }
+
+    private string NextWorkspaceTitle()
+    {
+        var largestNumber = 0;
+        foreach (var workspace in _workspaces)
+        {
+            const string prefix = "タブ ";
+            if (!workspace.Title.StartsWith(prefix, StringComparison.Ordinal) ||
+                !int.TryParse(workspace.Title[prefix.Length..], out var number))
+                continue;
+
+            largestNumber = Math.Max(largestNumber, number);
+        }
+
+        return $"タブ {largestNumber + 1}";
+    }
+
+    private void EnsureUniqueWorkspaceTitles()
+    {
+        var titles = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var workspace in _workspaces)
+        {
+            if (!titles.Add(workspace.Title))
+            {
+                workspace.Title = NextWorkspaceTitle();
+                titles.Add(workspace.Title);
+            }
+        }
     }
 
     private void CloseTab_Click(object sender, RoutedEventArgs e)
@@ -258,6 +287,7 @@ public partial class MainWindow : Window
             window._workspaces.Clear();
             window.Close();
         }
+        primary.EnsureUniqueWorkspaceTitles();
         primary.RefreshTabs(primary._workspaces.Count - 1);
         primary.Activate();
     }
