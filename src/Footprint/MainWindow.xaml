@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Footprint — コマンド履歴" Width="1100" Height="800" MinWidth="780" MinHeight="620"
-        Background="#F5F7FA" Loaded="Window_Loaded" Closing="Window_Closing">
+        Background="#F5F7FA" Loaded="Window_Loaded" Closing="Window_Closing"
+        AllowDrop="True" PreviewDragOver="Window_PreviewDragOver" PreviewDrop="Window_PreviewDrop">
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Padding" Value="14,7" />
@@ -32,7 +33,7 @@
                 </ComboBox>
             </StackPanel>
             <StackPanel Grid.Column="1">
-                <TextBlock Text="作業フォルダー" Margin="0,0,0,4" />
+                <TextBlock Text="作業フォルダー（フォルダーをドラッグ＆ドロップできます）" Margin="0,0,0,4" />
                 <TextBox x:Name="DirectoryBox" />
             </StackPanel>
         </Grid>
