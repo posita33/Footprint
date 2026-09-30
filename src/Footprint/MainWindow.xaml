@@ -33,6 +33,9 @@
                             PreviewMouseMove="WorkspaceTabs_PreviewMouseMove" />
             </DockPanel>
         </StackPanel>
+        <Border Grid.Row="1" Grid.RowSpan="4" Margin="-4,-4,-4,4" Padding="8"
+                BorderBrush="#2F56B0" BorderThickness="2" CornerRadius="6" Background="#F9FBFF"
+                IsHitTestVisible="False" />
         <Grid Grid.Row="1" Margin="0,0,0,10">
             <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
             <StackPanel Margin="0,0,12,0">
