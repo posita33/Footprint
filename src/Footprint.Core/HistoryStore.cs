@@ -12,6 +12,8 @@ public sealed class HistoryStore(string directory)
         Converters = { new JsonStringEnumConverter() }
     };
 
+    public string StorageDirectory => directory;
+
     public async Task SaveAsync(CommandRecord record)
     {
         Directory.CreateDirectory(directory);
