@@ -123,7 +123,11 @@
                               Background="#DCE2EA" Cursor="SizeNS" />
                 <Grid Grid.Row="3">
                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-                    <TextBlock Text="出力" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <DockPanel Margin="0,0,0,4">
+                        <Button Content="出力をコピー" Click="CopyOutput_Click" DockPanel.Dock="Right"
+                                Padding="8,2" ToolTip="表示中の出力をすべてコピー" />
+                        <TextBlock Text="出力" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </DockPanel>
                     <TextBox Grid.Row="1" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
                              Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
