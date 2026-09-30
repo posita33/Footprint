@@ -55,14 +55,18 @@
         <DockPanel Grid.Row="5" Margin="0,15,0,8">
             <TextBlock Text="履歴" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                <Button x:Name="FavoriteButton" Content="☆ お気に入り" Click="Favorite_Click" IsEnabled="False" />
                 <Button Content="入力に戻す" Click="Reuse_Click" /><Button Content="コピー" Click="Copy_Click" />
             </StackPanel>
+            <CheckBox x:Name="FavoritesOnlyBox" Content="お気に入りのみ" Margin="0,0,12,0"
+                      VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
             <TextBox x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="コマンド・作業フォルダー・シェルを検索" />
         </DockPanel>
         <DataGrid Grid.Row="6" x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectionMode="Single" SelectionUnit="FullRow" CanUserAddRows="False"
                   SelectionChanged="History_SelectionChanged" MouseDoubleClick="History_DoubleClick">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="★" Binding="{Binding FavoriteLabel}" Width="35" />
                 <DataGridTextColumn Header="実行日時" Binding="{Binding TimeLabel}" Width="150" />
                 <DataGridTextColumn Header="シェル" Binding="{Binding ShellLabel}" Width="95" />
                 <DataGridTextColumn Header="コマンド" Binding="{Binding Command}" Width="*" />

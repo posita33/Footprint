@@ -131,6 +131,8 @@ public partial class MainWindow : Window
     {
         RunButton.IsEnabled = !running;
         StopButton.IsEnabled = running;
+        FavoriteButton.IsEnabled = !running && HistoryGrid.SelectedItem is CommandRecord;
+        FavoritesOnlyBox.IsEnabled = !running;
         CommandBox.IsEnabled = DirectoryBox.IsEnabled = ShellBox.IsEnabled = !running;
     }
 
@@ -179,16 +181,54 @@ public partial class MainWindow : Window
 
     private void RefreshHistory()
     {
-        if (HistoryGrid is null || SearchBox is null) return;
-        HistoryGrid.ItemsSource = _history.Where(record => record.Matches(SearchBox.Text.Trim())).ToList();
+        if (HistoryGrid is null || SearchBox is null || FavoritesOnlyBox is null) return;
+        HistoryGrid.ItemsSource = _history
+            .Where(record => !FavoritesOnlyBox.IsChecked.GetValueOrDefault() || record.IsFavorite)
+            .Where(record => record.Matches(SearchBox.Text.Trim()))
+            .ToList();
     }
 
     private void Search_Changed(object sender, TextChangedEventArgs e) => RefreshHistory();
+    private void FavoriteFilter_Changed(object sender, RoutedEventArgs e) => RefreshHistory();
 
     private void History_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_cancellation is null && HistoryGrid.SelectedItem is CommandRecord record)
             OutputBox.Text = record.Output;
+        UpdateFavoriteButton();
+    }
+
+    private async void Favorite_Click(object sender, RoutedEventArgs e)
+    {
+        if (_cancellation is not null || HistoryGrid.SelectedItem is not CommandRecord record) return;
+        var wasFavorite = record.IsFavorite;
+        record.IsFavorite = !wasFavorite;
+        try
+        {
+            await _store.SaveAsync(record);
+            RefreshHistory();
+            StatusText.Text = record.IsFavorite ? "お気に入りに追加しました。" : "お気に入りから外しました。";
+        }
+        catch (Exception error)
+        {
+            record.IsFavorite = wasFavorite;
+            RefreshHistory();
+            ShowError("お気に入りの変更を保存できませんでした。", error);
+        }
+        UpdateFavoriteButton();
+    }
+
+    private void UpdateFavoriteButton()
+    {
+        if (FavoriteButton is null || HistoryGrid is null) return;
+        if (HistoryGrid.SelectedItem is not CommandRecord record)
+        {
+            FavoriteButton.IsEnabled = false;
+            FavoriteButton.Content = "☆ お気に入り";
+            return;
+        }
+        FavoriteButton.IsEnabled = _cancellation is null;
+        FavoriteButton.Content = record.IsFavorite ? "★ お気に入り解除" : "☆ お気に入り";
     }
 
     private void Reuse_Click(object sender, RoutedEventArgs e) => ReuseSelected();
