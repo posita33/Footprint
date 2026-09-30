@@ -10,6 +10,12 @@ Visual Studio / C# WPF で、画面から実行したコマンドを記録・検
 - CLI: `dotnet build Footprint.sln`、`dotnet run --project src/Footprint`
 - コア機能の検証: `dotnet run --project tests/Footprint.Core.SmokeTests`
 
+## 公開用リリース
+
+`v1.0.0` のような `v` で始まるタグを GitHub へ push すると、Windows x64 向けの自己完結型 Release ビルドが `Footprint-win-x64.zip` として GitHub Release に添付されます。ZIP を展開して `Footprint.exe` を起動してください。.NET の別途インストールは不要です。
+
+GitHub Actions の「Create release package」を手動実行した場合は、同じ ZIP をワークフローの成果物からダウンロードできます。公開する場合はタグを push してください。
+
 ## 使い方
 
 1. コマンドプロンプトまたは Windows PowerShell を選択します。
