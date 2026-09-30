@@ -50,7 +50,6 @@
             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
             <RowDefinition Height="3*" /><RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource WorkspaceBackground}" />
         <StackPanel Margin="0" Panel.ZIndex="1">
             <StackPanel Orientation="Horizontal" Height="36">
                 <TabControl x:Name="WorkspaceTabs" Height="36" SelectionChanged="WorkspaceTabs_SelectionChanged"
