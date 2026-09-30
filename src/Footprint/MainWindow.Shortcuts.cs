@@ -7,6 +7,12 @@ public partial class MainWindow
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         var modifiers = Keyboard.Modifiers;
+        if (modifiers == ModifierKeys.None && e.Key == Key.F1)
+        {
+            e.Handled = true;
+            Help_Click(sender, e);
+            return;
+        }
         if (modifiers == ModifierKeys.Control && e.Key == Key.F)
         {
             e.Handled = true;
