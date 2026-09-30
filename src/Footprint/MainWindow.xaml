@@ -138,6 +138,7 @@
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                     <Button x:Name="FavoriteButton" Content="☆ お気に入り" Click="Favorite_Click" IsEnabled="False" />
                     <Button Content="入力に戻す" Click="Reuse_Click" /><Button Content="コピー" Click="Copy_Click" />
+                    <Button Content="履歴フォルダーを開く" Click="OpenHistoryFolder_Click" />
                 </StackPanel>
                 <CheckBox x:Name="FavoritesOnlyBox" Content="お気に入りのみ" Margin="0,0,12,0"
                           VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />

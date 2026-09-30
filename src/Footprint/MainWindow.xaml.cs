@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -513,6 +514,20 @@ public partial class MainWindow : Window
         if (HistoryGrid.SelectedItem is not CommandRecord record) return;
         try { Clipboard.SetText(record.Command); StatusText.Text = "コマンドをコピーしました。"; }
         catch (Exception error) { ShowError("コピーできませんでした。", error); }
+    }
+
+    private void OpenHistoryFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Directory.CreateDirectory(_store.StorageDirectory);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _store.StorageDirectory,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception error) { ShowError("履歴フォルダーを開けませんでした。", error); }
     }
 
     private async void Window_Closing(object? sender, CancelEventArgs e)
