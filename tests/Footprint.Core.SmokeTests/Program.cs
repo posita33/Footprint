@@ -4,6 +4,17 @@ using System.Runtime.InteropServices;
 var directory = Path.Combine(Path.GetTempPath(), "Footprint-tests-" + Guid.NewGuid().ToString("N"));
 try
 {
+    Require(WorkspaceNames.Next(["タブ 1", "タブ 2", "タブ 4", "タブ 5"]) == "タブ 6",
+        "Removing a middle tab must not duplicate the next tab name.");
+    var outputRecord = new CommandRecord();
+    var displayedOutput = new System.Text.StringBuilder();
+    var boundedOutput = new CommandOutputCapture(outputRecord, chunk => displayedOutput.Append(chunk));
+    boundedOutput.Receive(new string('a', 99_999));
+    boundedOutput.Receive("日本語");
+    boundedOutput.Receive("ignored");
+    Require(outputRecord.Output == new string('a', 99_999) + "日\n[出力の保存上限に達しました]\n",
+        "Output must stop at the limit and report truncation only once.");
+    Require(displayedOutput.ToString() == outputRecord.Output, "Displayed and stored output must agree.");
     var store = new HistoryStore(directory);
     var record = new CommandRecord
     {
@@ -42,6 +53,19 @@ try
     await store.ReplaceAsync([record, extra], backup);
     (records, skipped) = await store.LoadAsync();
     Require(records.Count == 1 && records[0].IsFavorite, "Restore must replace valid history files.");
+    var manager = new HistoryManager(store);
+    await manager.ToggleFavoriteAsync(records[0]);
+    Require(!(await store.LoadAsync()).Records[0].IsFavorite, "Favorite changes must be persisted.");
+    await manager.ToggleFavoriteAsync(records[0]);
+    await store.SaveAsync(extra);
+    records.Add(extra);
+    await manager.ClearNonFavoritesAsync(records, nextBackupDate);
+    Require(records.Count == 1 && records[0].IsFavorite, "Clear must retain favorite records.");
+    var beforeClear = await store.LoadDailyBackupAsync(nextBackupDate);
+    Require(beforeClear.Count == 2, "Clear must back up history before deleting records.");
+    await manager.RestoreAsync(records, beforeClear, nextBackupDate.AddDays(1));
+    Require((await store.LoadAsync()).Records.Count == 2, "Manager restore must persist replacement history.");
+    await store.DeleteAsync(extra);
     await File.WriteAllTextAsync(Path.Combine(directory, "broken.json"), "not json");
     await File.WriteAllTextAsync(Path.Combine(directory, "null.json"), "null");
     (records, skipped) = await store.LoadAsync();
