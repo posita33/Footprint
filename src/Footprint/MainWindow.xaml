@@ -67,7 +67,9 @@
             <RowDefinition Height="3*" MinHeight="160" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Margin="0" Panel.ZIndex="1">
+        <DockPanel Margin="0" Panel.ZIndex="1">
+            <Button Content="ヘルプ" Click="Help_Click" ToolTip="使い方とショートカット（F1）"
+                    DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
             <StackPanel Orientation="Horizontal" Height="40">
                 <TabControl x:Name="WorkspaceTabs" Height="40" SelectionChanged="WorkspaceTabs_SelectionChanged"
                             PreviewMouseMove="WorkspaceTabs_PreviewMouseMove" HorizontalAlignment="Left"
@@ -88,7 +90,7 @@
                         Visibility="Collapsed" ToolTip="前回終了時のタブを復元"
                         Style="{StaticResource TabActionButtonStyle}" />
             </StackPanel>
-        </StackPanel>
+        </DockPanel>
         <Border Grid.Row="1" Margin="0,-1,0,12" Padding="10"
                 BorderThickness="0" Background="{DynamicResource WorkspaceBackground}">
             <Grid>
