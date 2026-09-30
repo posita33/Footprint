@@ -40,6 +40,8 @@ GitHub Actions の「Create release package」を手動実行した場合は、�
 
 ## Windows での動作確認
 
+タブの追加は `Ctrl + T`、現在のタブを閉じる操作は `Ctrl + W`、次／前のタブへの移動は `Ctrl + Tab` / `Ctrl + Shift + Tab` です。最後のタブは閉じずに残します。実行中のタブ操作は無効です。`Ctrl + F` で履歴検索欄へ移動できます。コマンド欄の Enter は改行、`Shift + Enter` は実行です。
+
 - CMD: `echo こんにちは` と `tree` を実行し、日本語を含む出力、終了コード 0、再起動後の履歴を確認
 - PowerShell: `Write-Output 'こんにちは'; exit 7` を実行し、日本語の出力と終了コード 7 を確認
 - `Get-Location` で指定した作業フォルダーを確認
