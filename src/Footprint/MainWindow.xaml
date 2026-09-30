@@ -7,6 +7,7 @@
     <Window.Resources>
         <SolidColorBrush x:Key="WorkspaceBackground" Color="#F9FBFF" />
         <Style x:Key="WorkspaceTabStyle" TargetType="TabItem">
+            <Setter Property="Height" Value="40" />
             <Setter Property="Background" Value="#E6EBF1" />
             <Setter Property="BorderBrush" Value="#808080" />
             <Setter Property="Padding" Value="16,7" />
@@ -52,8 +53,8 @@
             <RowDefinition Height="3*" /><RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Margin="0" Panel.ZIndex="1">
-            <StackPanel Orientation="Horizontal" Height="36">
-                <TabControl x:Name="WorkspaceTabs" Height="36" SelectionChanged="WorkspaceTabs_SelectionChanged"
+            <StackPanel Orientation="Horizontal" Height="40">
+                <TabControl x:Name="WorkspaceTabs" Height="40" SelectionChanged="WorkspaceTabs_SelectionChanged"
                             PreviewMouseMove="WorkspaceTabs_PreviewMouseMove" HorizontalAlignment="Left"
                             ItemContainerStyle="{StaticResource WorkspaceTabStyle}">
                     <TabControl.Template>
