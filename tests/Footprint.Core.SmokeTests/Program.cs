@@ -32,7 +32,7 @@ try
         foreach (var shell in new[] { ShellKind.CommandPrompt, ShellKind.PowerShell })
         {
             var command = shell == ShellKind.CommandPrompt
-                ? "echo こんにちは\r\necho %CD%\r\nexit /b 7"
+                ? "echo こんにちは\r\ntree /a\r\necho %CD%\r\nexit /b 7"
                 : "Write-Output 'こんにちは'; (Get-Location).Path; exit 7";
             var result = new CommandRecord { Command = command, WorkingDirectory = directory, Shell = shell };
             var capture = new OutputCapture();

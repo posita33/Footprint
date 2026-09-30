@@ -1,10 +1,13 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Footprint.Core;
 
 public sealed class CommandRunner
 {
+    static CommandRunner() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
     public async Task RunAsync(CommandRecord record, IProgress<string> output, CancellationToken cancellation)
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Windows が必要です。");
@@ -24,9 +27,14 @@ public sealed class CommandRunner
             };
             if (record.Shell == ShellKind.CommandPrompt)
             {
+                // cmd.exe and built-in tools such as tree write redirected Japanese output
+                // using the system OEM code page, not necessarily UTF-8.
+                var cmdEncoding = Encoding.GetEncoding((int)GetOEMCP());
+                start.StandardOutputEncoding = cmdEncoding;
+                start.StandardErrorEncoding = cmdEncoding;
                 script = Path.Combine(Path.GetTempPath(), $"Footprint-{Guid.NewGuid():N}.cmd");
-                await File.WriteAllTextAsync(script, "@echo off\r\nchcp 65001 >nul\r\n" +
-                    record.Command.Replace("\r\n", "\n").Replace("\n", "\r\n") + "\r\n", new UTF8Encoding(false));
+                await File.WriteAllTextAsync(script, "@echo off\r\n" +
+                    record.Command.Replace("\r\n", "\n").Replace("\n", "\r\n") + "\r\n", cmdEncoding);
                 start.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
                 start.Arguments = $"/d /s /c \"\"{script}\"\"";
             }
@@ -88,4 +96,7 @@ public sealed class CommandRunner
         while ((count = await reader.ReadAsync(buffer.AsMemory(), cancellation)) != 0)
             output.Report(new string(buffer, 0, count));
     }
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetOEMCP();
 }
