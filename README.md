@@ -4,6 +4,8 @@ Visual Studio / C# WPF で、画面から実行したコマンドを記録・検
 
 ## 開発・起動
 
+アプリアイコンの元デザインは `src/Footprint/Assets/Footprint.svg` です。PythonとPillowで `python src/Footprint/Assets/build_icon.py` を実行すると、同じデザインのEXE・タスクバー用複数サイズICOを再生成できます（Pillowは `pip install Pillow` でインストール）。
+
 - Windows 10 / 11
 - Visual Studio 2022 17.8 以降の「.NET デスクトップ開発」ワークロードと .NET 8 SDK
 - `Footprint.sln` を開き、`Footprint` をスタートアッププロジェクトにして F5 で起動
