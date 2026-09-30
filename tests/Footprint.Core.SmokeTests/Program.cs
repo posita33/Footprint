@@ -22,13 +22,28 @@ try
     Require(records[0].Output == record.Output && records[0].ExitCode == 7 && records[0].IsFavorite,
         "Result and favorite status must survive reload.");
     Require(records[0].Matches("POWERSHELL") && records[0].Matches("こんにちは"), "Search must match shell and command.");
+    var backupDate = new DateOnly(2026, 9, 30);
+    await store.SaveDailyBackupAsync(records, backupDate);
+    record.Output = "new output";
+    record.IsFavorite = false;
+    await store.SaveAsync(record);
+    await store.EnsureDailyBackupAsync([record], backupDate);
+    Require((await store.LoadBackupDatesAsync()).SequenceEqual([backupDate]), "Daily backup must be listed.");
+    var backup = await store.LoadDailyBackupAsync(backupDate);
+    Require(backup.Count == 1 && backup[0].IsFavorite && backup[0].Output == "こんにちは\n",
+        "Existing daily backup must be preserved.");
+    var extra = new CommandRecord { Command = "extra", WorkingDirectory = directory, Shell = ShellKind.PowerShell };
+    await store.SaveAsync(extra);
+    await store.ReplaceAsync([record, extra], backup);
+    (records, skipped) = await store.LoadAsync();
+    Require(records.Count == 1 && records[0].IsFavorite, "Restore must replace valid history files.");
     await File.WriteAllTextAsync(Path.Combine(directory, "broken.json"), "not json");
     await File.WriteAllTextAsync(Path.Combine(directory, "null.json"), "null");
     (records, skipped) = await store.LoadAsync();
     Require(records.Count == 1 && skipped == 2, "Corrupt records must not hide valid history.");
     Require(File.Exists(Path.Combine(directory, "broken.json")), "Corrupt files must be preserved.");
     Require(!Directory.EnumerateFiles(directory, "*.tmp").Any(), "Temporary writes must be cleaned up.");
-    Console.WriteLine("PASS: persistence, update, favorite status, Unicode, search, corrupt history, temporary cleanup");
+    Console.WriteLine("PASS: persistence, update, favorite status, daily backup, restore, Unicode, search, corrupt history, temporary cleanup");
     if (OperatingSystem.IsWindows())
     {
         var runner = new CommandRunner();

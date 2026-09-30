@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,10 +14,12 @@ public partial class MainWindow : Window
     private readonly HistoryStore _store = new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Footprint", "History"));
     private List<CommandRecord> _history = [];
+    private List<DateOnly> _backupDates = [];
     private CancellationTokenSource? _cancellation;
     private Task? _executionTask;
     private bool _closing;
     private bool _allowClose;
+    private bool _isReady;
     private int _skipped;
 
     public MainWindow()
@@ -30,10 +33,14 @@ public partial class MainWindow : Window
         try
         {
             (_history, _skipped) = await _store.LoadAsync();
+            await _store.EnsureDailyBackupAsync(_history, DateOnly.FromDateTime(DateTime.Today));
+            await LoadBackupDatesAsync();
             RefreshHistory();
             StatusText.Text = $"履歴 {_history.Count} 件" +
                 (_skipped > 0 ? $"（読み込めない {_skipped} 件は保持しています）" : "");
             RunButton.IsEnabled = true;
+            _isReady = true;
+            UpdateHistoryManagementControls();
         }
         catch (Exception error)
         {
@@ -133,6 +140,7 @@ public partial class MainWindow : Window
         StopButton.IsEnabled = running;
         FavoriteButton.IsEnabled = !running && HistoryGrid.SelectedItem is CommandRecord;
         FavoritesOnlyBox.IsEnabled = !running;
+        UpdateHistoryManagementControls();
         CommandBox.IsEnabled = DirectoryBox.IsEnabled = ShellBox.IsEnabled = !running;
     }
 
@@ -186,10 +194,96 @@ public partial class MainWindow : Window
             .Where(record => !FavoritesOnlyBox.IsChecked.GetValueOrDefault() || record.IsFavorite)
             .Where(record => record.Matches(SearchBox.Text.Trim()))
             .ToList();
+        UpdateHistoryManagementControls();
     }
 
     private void Search_Changed(object sender, TextChangedEventArgs e) => RefreshHistory();
     private void FavoriteFilter_Changed(object sender, RoutedEventArgs e) => RefreshHistory();
+
+    private async Task LoadBackupDatesAsync()
+    {
+        var selected = BackupDateBox.SelectedItem as string;
+        _backupDates = await _store.LoadBackupDatesAsync();
+        BackupDateBox.ItemsSource = _backupDates
+            .Select(date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToList();
+        BackupDateBox.SelectedItem = BackupDateBox.Items.Cast<string>().FirstOrDefault(date => date == selected)
+            ?? BackupDateBox.Items.Cast<string>().FirstOrDefault();
+        UpdateHistoryManagementControls();
+    }
+
+    private void BackupDate_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateHistoryManagementControls();
+
+    private async void CreateBackup_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await _store.SaveDailyBackupAsync(_history, DateOnly.FromDateTime(DateTime.Today));
+            await LoadBackupDatesAsync();
+            StatusText.Text = "今日の履歴をバックアップしました。";
+        }
+        catch (Exception error) { ShowError("バックアップを保存できませんでした。", error); }
+    }
+
+    private async void RestoreBackup_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryGetSelectedBackupDate(out var date)) return;
+        List<CommandRecord> records;
+        try { records = await _store.LoadDailyBackupAsync(date); }
+        catch (Exception error)
+        {
+            ShowError("選択したバックアップを読み込めませんでした。", error);
+            return;
+        }
+        if (MessageBox.Show(this,
+            $"{date:yyyy-MM-dd} のバックアップ（{records.Count} 件）で現在の履歴を置き換えます。\n現在の履歴は今日のバックアップとして保存されます。",
+            "履歴を復元", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        try
+        {
+            await _store.SaveDailyBackupAsync(_history, DateOnly.FromDateTime(DateTime.Today));
+            await _store.ReplaceAsync(_history, records);
+            _history = records;
+            RefreshHistory();
+            await LoadBackupDatesAsync();
+            StatusText.Text = $"{date:yyyy-MM-dd} のバックアップから {_history.Count} 件を復元しました。";
+        }
+        catch (Exception error) { ShowError("履歴を復元できませんでした。", error); }
+    }
+
+    private async void ClearNonFavorite_Click(object sender, RoutedEventArgs e)
+    {
+        var records = _history.Where(record => !record.IsFavorite).ToList();
+        if (records.Count == 0)
+        {
+            StatusText.Text = "削除できる履歴はありません。";
+            return;
+        }
+        if (MessageBox.Show(this,
+            $"お気に入り以外の履歴 {records.Count} 件を削除します。\n現在の履歴は今日のバックアップとして保存されます。",
+            "履歴を削除", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        try
+        {
+            await _store.SaveDailyBackupAsync(_history, DateOnly.FromDateTime(DateTime.Today));
+            foreach (var record in records) await _store.DeleteAsync(record);
+            _history.RemoveAll(record => !record.IsFavorite);
+            RefreshHistory();
+            await LoadBackupDatesAsync();
+            StatusText.Text = $"お気に入り以外の履歴 {records.Count} 件を削除しました。";
+        }
+        catch (Exception error) { ShowError("履歴を削除できませんでした。", error); }
+    }
+
+    private bool TryGetSelectedBackupDate(out DateOnly date) =>
+        DateOnly.TryParseExact(BackupDateBox.SelectedItem as string, "yyyy-MM-dd", CultureInfo.InvariantCulture,
+            DateTimeStyles.None, out date);
+
+    private void UpdateHistoryManagementControls()
+    {
+        if (CreateBackupButton is null || RestoreBackupButton is null || ClearNonFavoriteButton is null) return;
+        var canManage = _isReady && _cancellation is null;
+        CreateBackupButton.IsEnabled = canManage;
+        RestoreBackupButton.IsEnabled = canManage && TryGetSelectedBackupDate(out _);
+        ClearNonFavoriteButton.IsEnabled = canManage && _history.Any(record => !record.IsFavorite);
+    }
 
     private void History_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
