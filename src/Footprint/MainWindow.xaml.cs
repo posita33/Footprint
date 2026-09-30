@@ -46,6 +46,7 @@ public partial class MainWindow : Window
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        OfferSessionRestore();
         try
         {
             (_history, _skipped) = await _store.LoadAsync();
@@ -67,17 +68,20 @@ public partial class MainWindow : Window
 
     private async void Window_Closing(object? sender, CancelEventArgs e)
     {
-        if (!_allowClose && _cancellation is not null)
+        var windows = _isDetached ? new[] { this } : new[] { this }.Concat(DetachedWindows).ToArray();
+        if (!_allowClose && windows.Any(window => window._cancellation is not null))
         {
             e.Cancel = true;
             if (_closing) return;
             _closing = true;
-            _cancellation.Cancel();
-            if (_executionTask is not null) await _executionTask;
+            foreach (var window in windows) window._cancellation?.Cancel();
+            await Task.WhenAll(windows.Where(window => window._executionTask is not null)
+                .Select(window => window._executionTask!));
             _allowClose = true;
             Close();
             return;
         }
+        SaveWorkspaceSession();
         SharedHistoryChanged -= OnSharedHistoryChanged;
         DetachedWindows.Remove(this);
         if (ReferenceEquals(_primaryWindow, this)) _primaryWindow = null;
