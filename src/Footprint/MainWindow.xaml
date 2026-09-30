@@ -23,6 +23,7 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="{StaticResource WorkspaceBackground}" />
                                 <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,1,1,0" />
+                                <Setter TargetName="TabBorder" Property="Margin" Value="0,0,0,-4" />
                                 <Setter Property="Panel.ZIndex" Value="1" />
                             </Trigger>
                         </ControlTemplate.Triggers>
