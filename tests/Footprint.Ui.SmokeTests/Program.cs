@@ -11,6 +11,8 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => Console.WriteLine("::error::" +
+            e.ExceptionObject.ToString()!.Replace("%", "%25").Replace("\r", "%0D").Replace("\n", "%0A"));
         // Measure the real WPF controls without showing windows or loading user history.
         var app = new App();
         app.InitializeComponent();

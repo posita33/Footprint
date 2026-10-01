@@ -45,11 +45,15 @@ public sealed class ReleaseUpdateClient(HttpClient http)
         request.Headers.UserAgent.ParseAdd("Footprint-Updater/1.0");
         using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
         response.EnsureSuccessStatusCode();
+        var created = false;
         try
         {
             using (var file = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            using (var stream = await response.Content.ReadAsStreamAsync(cancellation))
+            {
+                created = true;
+                using var stream = await response.Content.ReadAsStreamAsync(cancellation);
                 await stream.CopyToAsync(file, cancellation);
+            }
             using var saved = File.OpenRead(destination);
             var hash = Convert.ToHexString(await SHA256.HashDataAsync(saved, cancellation));
             if (!hash.Equals(release.Sha256, StringComparison.OrdinalIgnoreCase))
@@ -57,7 +61,7 @@ public sealed class ReleaseUpdateClient(HttpClient http)
         }
         catch
         {
-            if (File.Exists(destination)) File.Delete(destination);
+            if (created && File.Exists(destination)) File.Delete(destination);
             throw;
         }
     }

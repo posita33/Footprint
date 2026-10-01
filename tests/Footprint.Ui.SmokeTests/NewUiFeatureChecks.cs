@@ -26,7 +26,8 @@ internal static class NewUiFeatureChecks
         wrap.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Require(command.TextWrapping == TextWrapping.NoWrap && command.HorizontalScrollBarVisibility == ScrollBarVisibility.Auto &&
             command.Text == original, "No-wrap must enable horizontal scrolling without altering text.");
-        command.ClearUndo();
+        command.IsUndoEnabled = false;
+        command.IsUndoEnabled = true;
         format.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Require(command.Text.Contains("-i \"input file.mp4\"") && command.Text.Contains(" ^\r\n"), "Format icon must group values with shell continuation.");
         command.Undo();
