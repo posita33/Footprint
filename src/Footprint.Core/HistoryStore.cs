@@ -29,17 +29,46 @@ public sealed class HistoryStore(string directory)
 
     public async Task EnsureDailyBackupAsync(IEnumerable<CommandRecord> records, DateOnly date)
     {
-        var path = BackupPath(date);
-        if (!File.Exists(path)) await SaveDailyBackupAsync(records, date);
+        var snapshot = records.ToList();
+        foreach (var day in snapshot.Select(ExecutionDate).Append(date).Distinct())
+            await SaveDailyBackupAsync(snapshot, day);
+        if (!File.Exists(FavoriteBackupPath(date))) await SaveFavoriteBackupAsync(snapshot, date);
     }
 
-    public Task SaveDailyBackupAsync(IEnumerable<CommandRecord> records, DateOnly date) =>
-        WriteJsonAsync(BackupPath(date), records.ToList());
+    private static DateOnly ExecutionDate(CommandRecord record) =>
+        DateOnly.FromDateTime(record.StartedAt.LocalDateTime);
+
+    public async Task SaveDailyBackupAsync(IEnumerable<CommandRecord> records, DateOnly date)
+    {
+        var previous = File.Exists(BackupPath(date)) ? await LoadDailyBackupAsync(date) : [];
+        var merged = previous.Concat(records.Where(record => ExecutionDate(record) == date))
+            .Where(record => ExecutionDate(record) == date)
+            .GroupBy(record => record.Id).Select(group => group.Last()).ToList();
+        await WriteJsonAsync(BackupPath(date), merged);
+    }
+
+    public Task SaveFavoriteBackupAsync(IEnumerable<CommandRecord> records, DateOnly date) =>
+        WriteJsonAsync(FavoriteBackupPath(date), records.Where(record => record.IsFavorite).ToList());
+
+    public async Task SaveBackupsAsync(IEnumerable<CommandRecord> records, DateOnly date)
+    {
+        var snapshot = records.ToList();
+        foreach (var day in snapshot.Select(ExecutionDate).Append(date).Distinct())
+            await SaveDailyBackupAsync(snapshot, day);
+        await SaveFavoriteBackupAsync(snapshot, date);
+    }
+
+    public Task<List<DateOnly>> LoadFavoriteBackupDatesAsync() => LoadDatesAsync(FavoriteBackupDirectory);
+
+    public Task<List<CommandRecord>> LoadFavoriteBackupAsync(DateOnly date) => LoadBackupAsync(FavoriteBackupPath(date));
 
     public Task<List<DateOnly>> LoadBackupDatesAsync()
+        => LoadDatesAsync(BackupDirectory);
+
+    private static Task<List<DateOnly>> LoadDatesAsync(string backupDirectory)
     {
-        if (!Directory.Exists(BackupDirectory)) return Task.FromResult(new List<DateOnly>());
-        var dates = Directory.EnumerateFiles(BackupDirectory, "*.json")
+        if (!Directory.Exists(backupDirectory)) return Task.FromResult(new List<DateOnly>());
+        var dates = Directory.EnumerateFiles(backupDirectory, "*.json")
             .Select(Path.GetFileNameWithoutExtension)
             .Select(name => DateOnly.TryParseExact(name, "yyyy-MM-dd", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out var date) ? date : (DateOnly?)null)
@@ -50,10 +79,12 @@ public sealed class HistoryStore(string directory)
         return Task.FromResult(dates);
     }
 
-    public async Task<List<CommandRecord>> LoadDailyBackupAsync(DateOnly date)
+    public Task<List<CommandRecord>> LoadDailyBackupAsync(DateOnly date) => LoadBackupAsync(BackupPath(date));
+
+    private static async Task<List<CommandRecord>> LoadBackupAsync(string path)
     {
         var records = JsonSerializer.Deserialize<List<CommandRecord>>(
-            await File.ReadAllTextAsync(BackupPath(date)), Options) ?? throw new JsonException("Backup is empty.");
+            await File.ReadAllTextAsync(path), Options) ?? throw new JsonException("Backup is empty.");
         if (records.Any(record => !IsValid(record))) throw new JsonException("Backup contains an invalid command record.");
         return records.OrderByDescending(record => record.StartedAt).ToList();
     }
@@ -88,6 +119,10 @@ public sealed class HistoryStore(string directory)
         }
         return (records.OrderByDescending(record => record.StartedAt).ToList(), skipped);
     }
+
+    private string FavoriteBackupDirectory => Path.Combine(directory, "FavoriteBackups");
+    private string FavoriteBackupPath(DateOnly date) => Path.Combine(FavoriteBackupDirectory,
+        date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + ".json");
 
     private string BackupDirectory => Path.Combine(directory, "Backups");
     private string BackupPath(DateOnly date) => Path.Combine(BackupDirectory,
