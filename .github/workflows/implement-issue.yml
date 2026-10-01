@@ -7,6 +7,10 @@ on:
         description: 'Open Issue number in this repository'
         required: true
         type: string
+      check_setup_only:
+        description: 'Check configuration without calling OpenAI or creating changes'
+        type: boolean
+        default: false
 permissions:
   contents: read
   issues: read
@@ -32,32 +36,38 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
+          CHECK_SETUP_ONLY: ${{ inputs.check_setup_only }}
           OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           test -n "$OPENAI_KEY" || { echo '::error::Configure repository secret OPENAI_API_KEY before requesting implementation.'; exit 1; }
+          if [ "$CHECK_SETUP_ONLY" = "true" ]; then echo "Configuration check passed; no implementation requested."; exit 0; fi
           [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]{0,8}$ ]] || { echo '::error::Invalid Issue number'; exit 1; }
           gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER" > "$RUNNER_TEMP/request.json"
           python3 .github/scripts/prepare-issue.py "$RUNNER_TEMP/request.json" "$RUNNER_TEMP/prompt.txt"
           echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Implement with Codex
+        if: ${{ !inputs.check_setup_only }}
         uses: openai/codex-action@86365089eb2b84e0a8fb0717b304f8bdcb13b20e
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt-file: ${{ runner.temp }}/prompt.txt
           permission-profile: ':workspace'
       - name: Collect implementation
+        if: ${{ !inputs.check_setup_only }}
         run: |
           git add -N .
           if git diff --quiet; then echo '::error::No implementation changes were produced.'; exit 1; fi
           if ! git diff --quiet -- .github; then echo '::error::Workflow changes require a separate reviewed request.'; exit 1; fi
           git diff --binary > "$RUNNER_TEMP/implementation.patch"
       - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.check_setup_only }}
         with:
           name: implementation-patch
           path: ${{ runner.temp }}/implementation.patch
           if-no-files-found: error
           retention-days: 7
   build:
+    if: ${{ !inputs.check_setup_only }}
     needs: implement
     runs-on: windows-latest
     timeout-minutes: 20

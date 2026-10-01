@@ -26,4 +26,4 @@ GitHub Settings → Developer settings → Personal access tokens → Fine-grain
 - ワークフロー `.github/workflows/implement-issue.yml` がmainにあること、developが存在することを確認します。手動実行はmainを選択してください。
 - GitHub側のブランチ保護や組織のポリシーでPR作成が禁止されている場合は管理者が設定を調整してください。自動処理は保護ルールを迂回せず、PRのマージ・リリースは管理者が行います。
 
-自動実装はUbuntuのCodexで変更を作成し、Windows上でビルド、コア・UIスモークテスト、自己完結ZIP生成を行います。Codexには書き込み用GitHubトークンを渡さず、ワークフロー変更は拒否します。Issueの解釈や実装が誤る場合もあるためPRと試用版を確認してください。キー未設定の場合は実行が明確なエラーで停止します。失敗したビルドから正式リリースは作りません。
+自動実装はUbuntuのCodexで変更を作成し、Windows上でビルド、コア・UIスモークテスト、自己完結ZIP生成を行います。Codexには書き込み用GitHubトークンを渡さず、ワークフロー変更は拒否します。Issueの解釈や実装が誤る場合もあるためPRと試用版を確認してください。Actionsの手動実行で `check_setup_only` を有効にすると、OpenAI APIを呼び出さずSecretの有無を確認できます（Issue番号欄は任意の正整数を入力）。キー未設定の場合は実行が明確なエラーで停止します。失敗したビルドから正式リリースは作りません。
