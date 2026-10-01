@@ -4,6 +4,8 @@ Visual Studio / C# WPF で、画面から実行したコマンドを記録・検
 
 ## 開発・起動
 
+アプリアイコンの元デザインは `src/Footprint/Assets/Footprint.svg` です。PythonとPillowで `python src/Footprint/Assets/build_icon.py` を実行すると、同じデザインのEXE・タスクバー用複数サイズICOを再生成できます（Pillowは `pip install Pillow` でインストール）。
+
 - Windows 10 / 11
 - Visual Studio 2022 17.8 以降の「.NET デスクトップ開発」ワークロードと .NET 8 SDK
 - `Footprint.sln` を開き、`Footprint` をスタートアッププロジェクトにして F5 で起動
@@ -17,6 +19,8 @@ Visual Studio / C# WPF で、画面から実行したコマンドを記録・検
 GitHub Actions の「Create release package」を手動実行した場合は、同じ ZIP をワークフローの成果物からダウンロードできます。公開する場合はタグを push してください。
 
 ## 使い方
+
+下部の履歴ボタンまたは `Ctrl + Space` で履歴・検索・バックアップを折りたためます。空いた縦幅を出力欄へ割り当て、再表示時には折りたたむ前の高さへ戻します。`Ctrl + F` は履歴を展開して検索へ移動します。実行中でも開閉でき、履歴や検索条件は保持します。
 
 右上の「ヘルプ」または `F1` で、ショートカット一覧・使い方・保存先をアプリ内で確認できます。
 
