@@ -141,7 +141,11 @@ public partial class MainWindow
     private void History_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_cancellation is null && HistoryGrid.SelectedItem is CommandRecord record)
+        {
             OutputBox.Text = record.Output;
+            OutputLimitText.Visibility = record.Output.Contains(CommandOutputCapture.TruncationNotice)
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
         UpdateFavoriteButton();
     }
 

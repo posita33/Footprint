@@ -1,26 +1,28 @@
 namespace Footprint.Core;
 
-/// <summary>Accumulates the same bounded output that is displayed and persisted.</summary>
-public sealed class CommandOutputCapture(CommandRecord record, Action<string> append)
+/// <summary>Bounds persisted output while delivering every chunk to the live view.</summary>
+public sealed class CommandOutputCapture(CommandRecord record, Action<string> append, Action? onTruncated = null)
 {
-    private const int OutputLimit = 100_000;
-    private bool _truncated;
+    public const int OutputLimit = 100_000;
+    public const string TruncationNotice = "\n[出力の保存上限に達しました]\n";
+    public bool IsTruncated { get; private set; }
+
+    public static string ForStorage(string text) => text.Length <= OutputLimit
+        ? text : text[..OutputLimit] + TruncationNotice;
 
     public void Receive(string text)
     {
-        var remaining = OutputLimit - record.Output.Length;
-        if (remaining > 0)
+        if (!IsTruncated)
         {
-            var chunk = text[..Math.Min(text.Length, remaining)];
-            record.Output += chunk;
-            append(chunk);
+            var remaining = Math.Max(0, OutputLimit - record.Output.Length);
+            record.Output += text[..Math.Min(text.Length, remaining)];
+            if (text.Length > remaining)
+            {
+                IsTruncated = true;
+                record.Output += TruncationNotice;
+                onTruncated?.Invoke();
+            }
         }
-        if (text.Length > remaining && !_truncated)
-        {
-            _truncated = true;
-            const string notice = "\n[出力の保存上限に達しました]\n";
-            record.Output += notice;
-            append(notice);
-        }
+        append(text);
     }
 }
