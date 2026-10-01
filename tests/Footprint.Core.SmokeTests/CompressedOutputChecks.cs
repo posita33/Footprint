@@ -22,21 +22,7 @@ internal static class CompressedOutputChecks
         sessionStore.Save(new WorkspaceSession { Workspaces = [new WorkspaceState { Output = text }] });
         Require(sessionStore.Load()!.Workspaces.Single().Output == text, "Session restore must decompress complete output.");
 
-        var pages = new OutputPages();
-        pages.Reset(new string('a', OutputPages.PageSize - 1) + "😀" + new string('b', OutputPages.PageSize - 2) + "\r\nTAIL");
-        Require(string.Concat(Enumerable.Range(0, pages.PageCount).Select(pages.GetPage)) == pages.FullText,
-            "Surrogate pairs and CRLF boundaries must reconstruct without losing or duplicating characters.");
-        Require(Enumerable.Range(0, pages.PageCount).All(i => pages.GetPage(i).Length <= OutputPages.PageSize + 1),
-            "Every textbox page must stay bounded.");
-        pages.Append("😀 more");
-        Require(string.Concat(Enumerable.Range(0, pages.PageCount).Select(pages.GetPage)) == pages.FullText,
-            "Appending must preserve page boundaries and full text.");
-        pages.Reset(new string('x', OutputPages.PageSize - 1) + "😀");
-        Require(pages.PageCount == 1 && pages.GetPage(0).EndsWith("😀"), "A boundary-adjusted final character must not create an empty page.");
-        pages.Reset("");
-        Require(pages.PageCount == 1 && pages.GetPage(0) == "", "Empty output must be a single empty page.");
-        pages.Reset(new string('x', OutputPages.PageSize));
-        Require(pages.PageCount == 1, "An exact page boundary must not create an empty trailing page.");
+        LineOutputChecks.Run();
 
         var original = JsonNode.Parse(await File.ReadAllTextAsync(file))!.AsObject();
         var legacy = original.DeepClone().AsObject();
