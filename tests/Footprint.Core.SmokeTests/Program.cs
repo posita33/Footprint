@@ -8,13 +8,25 @@ try
         "Removing a middle tab must not duplicate the next tab name.");
     var outputRecord = new CommandRecord();
     var displayedOutput = new System.Text.StringBuilder();
-    var boundedOutput = new CommandOutputCapture(outputRecord, chunk => displayedOutput.Append(chunk));
+    var truncationCount = 0;
+    var boundedOutput = new CommandOutputCapture(outputRecord, chunk => displayedOutput.Append(chunk), () => truncationCount++);
     boundedOutput.Receive(new string('a', 99_999));
     boundedOutput.Receive("日本語");
     boundedOutput.Receive("ignored");
     Require(outputRecord.Output == new string('a', 99_999) + "日\n[出力の保存上限に達しました]\n",
         "Output must stop at the limit and report truncation only once.");
-    Require(displayedOutput.ToString() == outputRecord.Output, "Displayed and stored output must agree.");
+    Require(displayedOutput.ToString() == new string('a', 99_999) + "日本語ignored",
+        "Live output must include every character beyond the storage limit without a storage notice.");
+    Require(boundedOutput.IsTruncated && truncationCount == 1, "Storage truncation must notify exactly once.");
+    var exactRecord = new CommandRecord();
+    var exactOutput = new CommandOutputCapture(exactRecord, _ => { });
+    exactOutput.Receive(new string('b', CommandOutputCapture.OutputLimit));
+    exactOutput.Receive("");
+    Require(!exactOutput.IsTruncated && exactRecord.Output.Length == CommandOutputCapture.OutputLimit,
+        "Exactly the limit and empty chunks must not report lost output.");
+    exactOutput.Receive("tail");
+    Require(exactRecord.Output == new string('b', CommandOutputCapture.OutputLimit) + CommandOutputCapture.TruncationNotice,
+        "Output after an exact boundary must remain bounded with a single notice.");
     var store = new HistoryStore(directory);
     var settingsPath = Path.Combine(directory, "Settings", "preferences.json");
     var settingsStore = new AppearanceSettingsStore(settingsPath);
@@ -59,6 +71,11 @@ try
     sessionStore.Save(new WorkspaceSession { Workspaces = [restored.Workspaces[0]] });
     Require(sessionStore.Load()!.Workspaces.Count == 1, "Saving a session must replace the previous tabs.");
     Require(sessionStore.Load()!.Window is null, "Sessions without window placement must remain readable.");
+    var liveWorkspace = new WorkspaceState { Output = displayedOutput.ToString() };
+    sessionStore.Save(new WorkspaceSession { Workspaces = [liveWorkspace] });
+    Require(sessionStore.Load()!.Workspaces[0].Output == CommandOutputCapture.ForStorage(displayedOutput.ToString()),
+        "Session output must obey the same disk storage limit.");
+    Require(liveWorkspace.Output == displayedOutput.ToString(), "Saving must not truncate the in-memory live output.");
     await File.WriteAllTextAsync(sessionPath, "{\"Workspaces\":null}");
     try
     {
@@ -159,6 +176,18 @@ try
         }
         if (NativeMethods.GetOEMCP() != 932)
             Console.WriteLine("SKIP: Japanese CMD output test (Japanese OEM code page required)");
+        var longRecord = new CommandRecord
+        {
+            Command = "[Console]::Write(('x' * 110000)); Start-Sleep -Milliseconds 200; [Console]::Write('TAIL_AFTER_LIMIT')",
+            WorkingDirectory = directory, Shell = ShellKind.PowerShell
+        };
+        var live = new System.Text.StringBuilder();
+        var longCapture = new CommandOutputCapture(longRecord, chunk => live.Append(chunk));
+        using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+            await runner.RunAsync(longRecord, new CaptureProgress(longCapture), timeout.Token);
+        Require(longRecord.Status == ExecutionStatus.Completed && live.ToString().EndsWith("TAIL_AFTER_LIMIT") &&
+            longRecord.Output == new string('x', CommandOutputCapture.OutputLimit) + CommandOutputCapture.TruncationNotice,
+            "A real long-running process must display trailing output while persisted output stays bounded.");
         var stopped = new CommandRecord
         {
             Command = "Start-Sleep -Seconds 30",
@@ -191,4 +220,9 @@ static class NativeMethods
 {
     [DllImport("kernel32.dll")]
     public static extern uint GetOEMCP();
+}
+
+sealed class CaptureProgress(CommandOutputCapture capture) : IProgress<string>
+{
+    public void Report(string value) { lock (capture) capture.Receive(value); }
 }

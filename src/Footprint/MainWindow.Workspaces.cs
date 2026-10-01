@@ -41,6 +41,8 @@ public partial class MainWindow
         DirectoryBox.Text = workspace.WorkingDirectory;
         CommandBox.Text = workspace.Command;
         OutputBox.Text = workspace.Output;
+        OutputLimitText.Visibility = workspace.Output.Contains(CommandOutputCapture.TruncationNotice)
+            ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void WorkspaceTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)

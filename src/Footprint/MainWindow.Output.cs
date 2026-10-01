@@ -4,6 +4,14 @@ namespace Footprint;
 
 public partial class MainWindow
 {
+    private void AppendLiveOutput(string text)
+    {
+        OutputBox.AppendText(text);
+        if (AutoScrollBox.IsChecked == true) OutputBox.ScrollToEnd();
+    }
+
+    private void AutoScroll_Checked(object sender, RoutedEventArgs e) => OutputBox?.ScrollToEnd();
+
     private void CopyOutput_Click(object sender, RoutedEventArgs e)
     {
         var text = OutputBox.Text;

@@ -11,6 +11,13 @@ namespace Footprint;
 
 public partial class MainWindow
 {
+    private readonly Stopwatch _executionElapsed = new();
+    private System.Windows.Threading.DispatcherTimer? _executionTimer;
+    private bool _stopRequested;
+
+    private void UpdateExecutionIndicator() => ExecutionStateText.Text =
+        $"{(_stopRequested ? "停止処理中" : "実行中")} · 経過 {_executionElapsed.Elapsed:hh\\:mm\\:ss}";
+
     private async void Run_Click(object sender, RoutedEventArgs e)
     {
         if (_cancellation is not null) return;
@@ -42,10 +49,13 @@ public partial class MainWindow
         OutputBox.Clear();
         StatusText.Text = "実行しています…";
         _executionTask = ExecuteAsync(record, _cancellation.Token);
-        await _executionTask;
-        _cancellation.Dispose();
-        _cancellation = null;
-        SetRunning(false);
+        try { await _executionTask; }
+        finally
+        {
+            _cancellation.Dispose();
+            _cancellation = null;
+            SetRunning(false);
+        }
     }
 
     private void CommandBox_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -67,11 +77,8 @@ public partial class MainWindow
         }
         _history.Insert(0, record);
         RefreshHistory();
-        var capture = new CommandOutputCapture(record, text =>
-        {
-            OutputBox.AppendText(text);
-            OutputBox.ScrollToEnd();
-        });
+        var capture = new CommandOutputCapture(record, AppendLiveOutput,
+            () => OutputLimitText.Visibility = Visibility.Visible);
         // Dispatcher delivery completes before the result is persisted.
         var output = new DispatcherOutput(capture.Receive, Dispatcher);
         try { await new CommandRunner().RunAsync(record, output, cancellation); }
@@ -96,7 +103,33 @@ public partial class MainWindow
 
     private void SetRunning(bool running)
     {
-        RunButton.IsEnabled = !running;
+        ExecutionIndicator.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
+        ExecutionProgress.IsIndeterminate = running;
+        RunButton.Content = running ? "実行中…" : "実行";
+        StopButton.Content = "停止";
+        if (running)
+        {
+            _stopRequested = false;
+            OutputLimitText.Visibility = Visibility.Collapsed;
+            _executionElapsed.Restart();
+            _executionTimer ??= new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            if (!_executionTimer.IsEnabled)
+            {
+                _executionTimer.Tick -= ExecutionTimer_Tick;
+                _executionTimer.Tick += ExecutionTimer_Tick;
+                _executionTimer.Start();
+            }
+            UpdateExecutionIndicator();
+        }
+        else
+        {
+            _executionTimer?.Stop();
+            _executionElapsed.Stop();
+        }
+        RunButton.IsEnabled = !running && _isReady;
         RestoreTabsButton.IsEnabled = !running;
         StopButton.IsEnabled = running;
         FavoriteButton.IsEnabled = !running && HistoryGrid.SelectedItem is CommandRecord;
@@ -107,9 +140,15 @@ public partial class MainWindow
         CommandBox.IsEnabled = DirectoryBox.IsEnabled = ShellBox.IsEnabled = !running;
     }
 
+    private void ExecutionTimer_Tick(object? sender, EventArgs e) => UpdateExecutionIndicator();
+
     private void Stop_Click(object sender, RoutedEventArgs e)
     {
-        _cancellation?.Cancel();
+        if (_cancellation is null) return;
+        _stopRequested = true;
+        UpdateExecutionIndicator();
+        StopButton.Content = "停止処理中…";
         StopButton.IsEnabled = false;
+        _cancellation.Cancel();
     }
 }
