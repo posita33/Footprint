@@ -46,7 +46,8 @@ public partial class MainWindow
 
     private void UpdateOutputPageControls()
     {
-        OutputPageText.Text = $"{_outputPageIndex + 1} / {_outputPages.PageCount} ページ · {_outputPages.Length:N0} 文字";
+        var (first, last) = _outputPages.GetLineRange(_outputPageIndex);
+        OutputPageText.Text = $"{_outputPageIndex + 1} / {_outputPages.PageCount} ページ · {first:N0}–{last:N0} 行 · {_outputPages.Length:N0} 文字";
         FirstOutputPageButton.IsEnabled = PreviousOutputPageButton.IsEnabled = _outputPageIndex > 0;
         LastOutputPageButton.IsEnabled = NextOutputPageButton.IsEnabled = _outputPageIndex < _outputPages.PageCount - 1;
         CopyFullOutputButton.IsEnabled = CopyOutputPageButton.IsEnabled = SaveOutputButton.IsEnabled = _outputPages.Length > 0;

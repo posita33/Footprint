@@ -2,38 +2,84 @@ using System.Text;
 
 namespace Footprint.Core;
 
-/// <summary>Keeps full output apart from the small text presented by the UI.</summary>
+/// <summary>Indexes complete logical lines without splitting them between pages.</summary>
 public sealed class OutputPages
 {
-    public const int PageSize = 50_000;
+    public const int LinesPerPage = 500;
     private readonly StringBuilder _text = new();
+    private readonly List<int> _pageStarts = [0];
+    private readonly List<int> _firstLines = [1];
+    private int _completedLines;
+    private int _pageLines;
+    private bool _pendingPage;
+    private bool _previousWasCr;
+    private bool _endedWithBreak;
+
     public int Length => _text.Length;
-    public int PageCount
+    public int PageCount => _pageStarts.Count;
+    public string FullText => _text.ToString();
+
+    public void Reset(string text)
     {
-        get
+        _text.Clear();
+        _pageStarts.Clear();
+        _pageStarts.Add(0);
+        _firstLines.Clear();
+        _firstLines.Add(1);
+        _completedLines = _pageLines = 0;
+        _pendingPage = _previousWasCr = _endedWithBreak = false;
+        Append(text);
+    }
+
+    public void Append(string text)
+    {
+        var start = Length;
+        _text.Append(text);
+        for (var i = 0; i < text.Length; i++)
         {
-            var count = Math.Max(1, (int)(((long)Length + PageSize - 1) / PageSize));
-            return count > 1 && Boundary((count - 1) * PageSize) == Length ? count - 1 : count;
+            var c = text[i];
+            if (_previousWasCr && c == '\n')
+            {
+                // A CRLF belongs entirely to the preceding line, even across chunks.
+                _previousWasCr = false;
+                continue;
+            }
+            if (_pendingPage)
+            {
+                _pageStarts.Add(start + i);
+                _firstLines.Add(_completedLines + 1);
+                _pageLines = 0;
+                _pendingPage = false;
+            }
+            _previousWasCr = c == '\r';
+            _endedWithBreak = c is '\r' or '\n';
+            if (_endedWithBreak)
+            {
+                _completedLines++;
+                _pageLines++;
+                _pendingPage = _pageLines == LinesPerPage;
+            }
         }
     }
-    public string FullText => _text.ToString();
-    public void Reset(string text) { _text.Clear(); _text.Append(text); }
-    public void Append(string text) => _text.Append(text);
 
     public string GetPage(int index)
     {
-        if (index < 0 || index >= PageCount) throw new ArgumentOutOfRangeException(nameof(index));
-        var start = Boundary(index * PageSize);
-        var end = Boundary((int)Math.Min((long)(index + 1) * PageSize, Length));
+        ValidateIndex(index);
+        var start = _pageStarts[index];
+        var end = index + 1 < PageCount ? _pageStarts[index + 1] : Length;
         return _text.ToString(start, end - start);
     }
 
-    private int Boundary(int index)
+    public (int First, int Last) GetLineRange(int index)
     {
-        // Keep surrogate pairs and Windows line endings on the preceding page.
-        if (index > 0 && index < Length &&
-            ((char.IsHighSurrogate(_text[index - 1]) && char.IsLowSurrogate(_text[index])) ||
-             (_text[index - 1] == '\r' && _text[index] == '\n'))) return index + 1;
-        return index;
+        ValidateIndex(index);
+        if (Length == 0) return (0, 0);
+        return (_firstLines[index], index + 1 < PageCount ? _firstLines[index + 1] - 1 :
+            _completedLines + (_endedWithBreak ? 0 : 1));
+    }
+
+    private void ValidateIndex(int index)
+    {
+        if (index < 0 || index >= PageCount) throw new ArgumentOutOfRangeException(nameof(index));
     }
 }
