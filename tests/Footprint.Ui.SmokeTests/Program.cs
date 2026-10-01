@@ -29,7 +29,7 @@ internal static class Program
         var workspaceRow = (RowDefinition)window.FindName("WorkspaceRow");
         var historyRow = (RowDefinition)window.FindName("HistoryRow");
         command.Text = "echo keep";
-        output.Text = "keep output";
+        typeof(MainWindow).GetMethod("SetOutput", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(window, ["keep output"]);
         search.Text = "keep search";
         workspaceRow.Height = new GridLength(4, GridUnitType.Star);
         historyRow.Height = new GridLength(2, GridUnitType.Star);
@@ -72,16 +72,16 @@ internal static class Program
         Measure();
         Require(indicator.Visibility == Visibility.Visible && progress.IsIndeterminate && !command.IsEnabled && stop.IsEnabled &&
             state.Text.Contains("実行中") && state.Text.Contains("経過"), "Running must visibly explain why input is disabled.");
-        output.Clear();
-        autoScroll.IsChecked = false;
+        typeof(MainWindow).GetMethod("SetOutput", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(window, [""]);
+        autoScroll.IsChecked = true;
         var liveRecord = new CommandRecord();
         var liveCapture = new CommandOutputCapture(liveRecord,
-            text => appendLive.Invoke(window, [text]), () => limit.Visibility = Visibility.Visible);
-        liveCapture.Receive(new string('x', CommandOutputCapture.OutputLimit));
+            text => appendLive.Invoke(window, [text]));
+        liveCapture.Receive(new string('x', 100_000));
         liveCapture.Receive("TAIL_AFTER_LIMIT");
-        Require(output.Text.EndsWith("TAIL_AFTER_LIMIT") && limit.Visibility == Visibility.Visible &&
+        Require(output.Text.EndsWith("TAIL_AFTER_LIMIT") && limit.Visibility == Visibility.Collapsed &&
             indicator.Visibility == Visibility.Visible && !command.IsEnabled,
-            "Reaching the storage limit must retain visible running state and continue displaying output with auto-scroll off.");
+            "Crossing the old storage limit must retain visible running state and display the latest output page.");
         autoScroll.IsChecked = true;
         Require(output.Text.EndsWith("TAIL_AFTER_LIMIT"), "Enabling auto-scroll must preserve full live output.");
         stop.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -96,6 +96,7 @@ internal static class Program
         Require(limit.Visibility == Visibility.Collapsed, "A new run must clear the prior truncation notice.");
         setRunning.Invoke(window, [false]);
         NewUiFeatureChecks.Run(window);
+        PagedOutputUiChecks.Run(window);
         var tabs = (TabControl)window.FindName("WorkspaceTabs");
         var first = new TabItem { Header = "テーマ確認" };
         var second = new TabItem { Header = "未選択" };

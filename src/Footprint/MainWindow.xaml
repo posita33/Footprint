@@ -174,19 +174,29 @@
                               ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
                               Background="{DynamicResource WindowBackground}" Cursor="SizeNS" />
                 <Grid Grid.Row="3">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                     <DockPanel Margin="0,0,0,4">
-                        <Button Content="出力をコピー" Click="CopyOutput_Click" DockPanel.Dock="Right"
-                                Padding="8,2" ToolTip="表示中の出力をすべてコピー" />
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button x:Name="CopyFullOutputButton" Content="全出力をコピー" Click="CopyOutput_Click" Padding="8,2" ToolTip="全ページの出力をコピー" />
+                            <Button x:Name="CopyOutputPageButton" Content="ページをコピー" Click="CopyOutputPage_Click" Padding="8,2" />
+                            <Button x:Name="SaveOutputButton" Content="TXTに保存" Click="SaveOutput_Click" Padding="8,2" ToolTip="全出力をUTF-8テキストに書き出す" />
+                        </StackPanel>
                         <CheckBox x:Name="AutoScrollBox" Content="末尾へ自動スクロール" IsChecked="True"
                                   DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0"
                                   Checked="AutoScroll_Checked" />
                         <TextBlock Text="出力" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </DockPanel>
                     <TextBlock Grid.Row="1" x:Name="OutputLimitText" Visibility="Collapsed" Margin="0,0,0,4"
-                               Text="保存上限（10万文字）に達しました。今回の実行画面は全出力を表示・コピーできます。履歴・復元は保存範囲のみです。"
+                               Text="旧バージョンで保存上限に達した出力です。切り捨てられた部分は復元できません。新しい実行は全出力を圧縮保存します。"
                                TextWrapping="Wrap" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
-                    <TextBox Grid.Row="2" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,4">
+                        <Button x:Name="FirstOutputPageButton" Content="⏮" Click="FirstOutputPage_Click" Padding="6,2" ToolTip="先頭ページ" AutomationProperties.Name="出力の先頭ページ" />
+                        <Button x:Name="PreviousOutputPageButton" Content="◀" Click="PreviousOutputPage_Click" Padding="6,2" ToolTip="前のページ" AutomationProperties.Name="出力の前のページ" />
+                        <TextBlock x:Name="OutputPageText" VerticalAlignment="Center" Margin="8,0" />
+                        <Button x:Name="NextOutputPageButton" Content="▶" Click="NextOutputPage_Click" Padding="6,2" ToolTip="次のページ" AutomationProperties.Name="出力の次のページ" />
+                        <Button x:Name="LastOutputPageButton" Content="⏭" Click="LastOutputPage_Click" Padding="6,2" ToolTip="末尾ページ" AutomationProperties.Name="出力の末尾ページ" />
+                    </StackPanel>
+                    <TextBox Grid.Row="3" x:Name="OutputBox" IsReadOnly="True" IsUndoEnabled="False" FontFamily="Consolas"
                              FontSize="{DynamicResource CommandFontSize}"
                              Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
