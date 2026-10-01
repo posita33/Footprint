@@ -32,7 +32,7 @@ public partial class MainWindow
         workspace.ShellIndex = ShellBox.SelectedIndex;
         workspace.WorkingDirectory = DirectoryBox.Text;
         workspace.Command = CommandBox.Text;
-        workspace.Output = OutputBox.Text;
+        workspace.Output = _outputPages.FullText;
     }
 
     private void ApplyWorkspace(WorkspaceState workspace)
@@ -40,9 +40,7 @@ public partial class MainWindow
         ShellBox.SelectedIndex = workspace.ShellIndex;
         DirectoryBox.Text = workspace.WorkingDirectory;
         CommandBox.Text = workspace.Command;
-        OutputBox.Text = workspace.Output;
-        OutputLimitText.Visibility = workspace.Output.Contains(CommandOutputCapture.TruncationNotice)
-            ? Visibility.Visible : Visibility.Collapsed;
+        SetOutput(workspace.Output);
     }
 
     private void WorkspaceTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)

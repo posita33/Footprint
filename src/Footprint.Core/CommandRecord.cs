@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.Json.Serialization;
+
 namespace Footprint.Core;
 
 public enum ShellKind { CommandPrompt, PowerShell }
@@ -12,7 +15,19 @@ public sealed class CommandRecord
     public ShellKind Shell { get; set; }
     public ExecutionStatus Status { get; set; }
     public int? ExitCode { get; set; }
-    public string Output { get; set; } = "";
+    private string _output = "";
+    private StringBuilder? _outputBuffer;
+    [JsonConverter(typeof(CompressedOutputConverter))]
+    public string Output
+    {
+        get => _outputBuffer?.ToString() ?? _output;
+        set { _output = value; _outputBuffer = null; }
+    }
+    public void AppendOutput(string text)
+    {
+        _outputBuffer ??= new StringBuilder(_output);
+        _outputBuffer.Append(text);
+    }
     public bool IsFavorite { get; set; }
     public string ShellLabel => Shell == ShellKind.CommandPrompt ? "CMD" : "PowerShell";
     public string FavoriteLabel => IsFavorite ? "★" : "";

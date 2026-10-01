@@ -32,7 +32,7 @@ internal static class NewUiFeatureChecks
         Require(command.Text.Contains("-i \"input file.mp4\"") && command.Text.Contains(" ^\r\n"), "Format icon must group values with shell continuation.");
         command.Undo();
         Require(command.Text == original, "One undo must restore the exact original command.");
-        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.4", "Current release version must be visible.");
+        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.5", "Current release version must be visible.");
         var running = typeof(MainWindow).GetMethod("SetRunning", BindingFlags.Instance | BindingFlags.NonPublic)!;
         running.Invoke(window, [true]);
         Require(!format.IsEnabled && !((Button)window.FindName("UpdateApplicationButton")).IsEnabled && wrap.IsEnabled,
