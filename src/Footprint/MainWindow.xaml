@@ -126,22 +126,37 @@
                              FontSize="{DynamicResource CommandFontSize}"
                              FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                              PreviewKeyDown="CommandBox_PreviewKeyDown" />
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Button x:Name="RunButton" Content="実行" Click="Run_Click" IsEnabled="False" />
-                        <Button x:Name="StopButton" Content="停止" Click="Stop_Click" IsEnabled="False" />
-                    </StackPanel>
+                    <DockPanel Grid.Row="2" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                            <Button x:Name="RunButton" Content="実行" Click="Run_Click" IsEnabled="False" />
+                            <Button x:Name="StopButton" Content="停止" Click="Stop_Click" IsEnabled="False" />
+                        </StackPanel>
+                        <StackPanel x:Name="ExecutionIndicator" Visibility="Collapsed" VerticalAlignment="Center"
+                                    AutomationProperties.LiveSetting="Polite">
+                            <TextBlock x:Name="ExecutionStateText" FontWeight="Bold" Text="実行中" />
+                            <TextBlock Text="実行中は入力を変更できません。中断するには「停止」を押してください。"
+                                       FontSize="12" TextWrapping="Wrap" />
+                            <ProgressBar x:Name="ExecutionProgress" Height="4" Margin="0,4,12,0" IsIndeterminate="False" />
+                        </StackPanel>
+                    </DockPanel>
                 </Grid>
                 <GridSplitter Grid.Row="2" Height="8" HorizontalAlignment="Stretch"
                               ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
                               Background="{DynamicResource WindowBackground}" Cursor="SizeNS" />
                 <Grid Grid.Row="3">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                     <DockPanel Margin="0,0,0,4">
                         <Button Content="出力をコピー" Click="CopyOutput_Click" DockPanel.Dock="Right"
                                 Padding="8,2" ToolTip="表示中の出力をすべてコピー" />
+                        <CheckBox x:Name="AutoScrollBox" Content="末尾へ自動スクロール" IsChecked="True"
+                                  DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0"
+                                  Checked="AutoScroll_Checked" />
                         <TextBlock Text="出力" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </DockPanel>
-                    <TextBox Grid.Row="1" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
+                    <TextBlock Grid.Row="1" x:Name="OutputLimitText" Visibility="Collapsed" Margin="0,0,0,4"
+                               Text="保存上限（10万文字）に達しました。今回の実行画面は全出力を表示・コピーできます。履歴・復元は保存範囲のみです。"
+                               TextWrapping="Wrap" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
+                    <TextBox Grid.Row="2" x:Name="OutputBox" IsReadOnly="True" FontFamily="Consolas"
                              FontSize="{DynamicResource CommandFontSize}"
                              Background="#182635" Foreground="#E8EEF5" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />

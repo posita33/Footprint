@@ -43,7 +43,19 @@ public sealed class WorkspaceSessionStore(string path)
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(session));
+            // Copy the snapshot so capping disk output does not alter the live tabs.
+            var snapshot = new WorkspaceSession
+            {
+                ActiveIndex = session.ActiveIndex,
+                Window = session.Window,
+                Workspaces = session.Workspaces.Select(workspace => new WorkspaceState
+                {
+                    Title = workspace.Title, ShellIndex = workspace.ShellIndex,
+                    WorkingDirectory = workspace.WorkingDirectory, Command = workspace.Command,
+                    Output = CommandOutputCapture.ForStorage(workspace.Output)
+                }).ToList()
+            };
+            File.WriteAllText(temporary, JsonSerializer.Serialize(snapshot));
             File.Move(temporary, path, overwrite: true);
         }
         finally

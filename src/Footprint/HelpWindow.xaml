@@ -22,7 +22,7 @@
                 <TextBlock Text="外観設定" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="右上の「設定」でライト／ダークのテーマと、コマンド・出力の文字サイズ（12～24）を選べます。「保存」で全ウィンドウに反映し、次回起動時にも適用します。「キャンセル」では変更しません。「標準に戻す」は選択値を初期値へ戻し、保存するまでは反映しません。設定は %LOCALAPPDATA%\Footprint\Settings.json に保存します。" />
                 <TextBlock Text="保存先と注意" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
-                <TextBlock TextWrapping="Wrap" Text="履歴：%LOCALAPPDATA%\Footprint\History&#x0a;実行日別バックアップ：History\Backups&#x0a;お気に入りバックアップ：History\FavoriteBackups&#x0a;タブとウィンドウ：%LOCALAPPDATA%\Footprint\Session.json&#x0a;&#x0a;「履歴フォルダーを開く」で保存先を開けます。コマンドと出力は平文で保存されるため、パスワードやトークンを入力しないでください。各実行は独立したシェルで、cd・変数・プロファイルは次の実行に引き継ぎません。対話入力が必要なコマンドには対応していません。出力の保存は先頭約100,000文字までです。" />
+                <TextBlock TextWrapping="Wrap" Text="履歴：%LOCALAPPDATA%\Footprint\History&#x0a;実行日別バックアップ：History\Backups&#x0a;お気に入りバックアップ：History\FavoriteBackups&#x0a;タブとウィンドウ：%LOCALAPPDATA%\Footprint\Session.json&#x0a;&#x0a;「履歴フォルダーを開く」で保存先を開けます。コマンドと出力は平文で保存されるため、パスワードやトークンを入力しないでください。各実行は独立したシェルで、cd・変数・プロファイルは次の実行に引き継ぎません。対話入力が必要なコマンドには対応していません。出力の保存は先頭100,000文字と上限通知までです。今回の実行画面は上限後も表示・コピーできます。履歴選択・再起動後は保存範囲を表示します。「末尾へ自動スクロール」を外すと以前のログを読み返せます。実行中は動くインジケーターと経過時間、入力できない理由を表示し、「停止」で中断できます。" />
             </StackPanel>
         </ScrollViewer>
     </DockPanel>

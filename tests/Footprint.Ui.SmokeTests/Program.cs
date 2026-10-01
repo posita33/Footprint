@@ -55,6 +55,44 @@ internal static class Program
             historyRow.Height == new GridLength(2, GridUnitType.Star), "Expanding must restore the adjusted panel ratio.");
         Require(command.Text == "echo keep" && output.Text == "keep output" && search.Text == "keep search",
             "Toggling must preserve input, output and search.");
+        var setRunning = typeof(MainWindow).GetMethod("SetRunning", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var appendLive = typeof(MainWindow).GetMethod("AppendLiveOutput", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        var indicator = (StackPanel)window.FindName("ExecutionIndicator");
+        var progress = (ProgressBar)window.FindName("ExecutionProgress");
+        var state = (TextBlock)window.FindName("ExecutionStateText");
+        var limit = (TextBlock)window.FindName("OutputLimitText");
+        var autoScroll = (CheckBox)window.FindName("AutoScrollBox");
+        var stop = (Button)window.FindName("StopButton");
+        typeof(MainWindow).GetField("_isReady", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(window, true);
+        using var cancellation = new CancellationTokenSource();
+        typeof(MainWindow).GetField("_cancellation", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(window, cancellation);
+        setRunning.Invoke(window, [true]);
+        Measure();
+        Require(indicator.Visibility == Visibility.Visible && progress.IsIndeterminate && !command.IsEnabled && stop.IsEnabled &&
+            state.Text.Contains("実行中") && state.Text.Contains("経過"), "Running must visibly explain why input is disabled.");
+        output.Clear();
+        autoScroll.IsChecked = false;
+        var liveRecord = new CommandRecord();
+        var liveCapture = new CommandOutputCapture(liveRecord,
+            text => appendLive.Invoke(window, [text]), () => limit.Visibility = Visibility.Visible);
+        liveCapture.Receive(new string('x', CommandOutputCapture.OutputLimit));
+        liveCapture.Receive("TAIL_AFTER_LIMIT");
+        Require(output.Text.EndsWith("TAIL_AFTER_LIMIT") && limit.Visibility == Visibility.Visible &&
+            indicator.Visibility == Visibility.Visible && !command.IsEnabled,
+            "Reaching the storage limit must retain visible running state and continue displaying output with auto-scroll off.");
+        autoScroll.IsChecked = true;
+        Require(output.Text.EndsWith("TAIL_AFTER_LIMIT"), "Enabling auto-scroll must preserve full live output.");
+        stop.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Require(cancellation.IsCancellationRequested && state.Text.Contains("停止処理中") && !stop.IsEnabled,
+            "Stop must show pending cancellation while input remains disabled.");
+        typeof(MainWindow).GetField("_cancellation", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(window, null);
+        setRunning.Invoke(window, [false]);
+        Require(indicator.Visibility == Visibility.Collapsed && !progress.IsIndeterminate && command.IsEnabled &&
+            ((Button)window.FindName("RunButton")).IsEnabled && !stop.IsEnabled && output.Text.EndsWith("TAIL_AFTER_LIMIT"),
+            "Finishing must restore input and preserve the complete displayed output.");
+        setRunning.Invoke(window, [true]);
+        Require(limit.Visibility == Visibility.Collapsed, "A new run must clear the prior truncation notice.");
+        setRunning.Invoke(window, [false]);
         var tabs = (TabControl)window.FindName("WorkspaceTabs");
         var first = new TabItem { Header = "テーマ確認" };
         var second = new TabItem { Header = "未選択" };
