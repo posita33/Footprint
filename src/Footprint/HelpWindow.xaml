@@ -11,10 +11,12 @@
             <StackPanel>
                 <TextBlock Text="ショートカット" FontSize="20" FontWeight="Bold" Margin="0,0,0,12" />
                 <TextBlock TextWrapping="Wrap" FontSize="14" Text="F1：このヘルプを開く&#x0a;Shift + Enter：コマンド入力欄で実行&#x0a;Enter：コマンド入力欄で改行&#x0a;Ctrl + T：タブを追加&#x0a;Ctrl + W：現在のタブを閉じる（最後のタブは残す）&#x0a;Ctrl + Tab：次のタブへ移動&#x0a;Ctrl + Shift + Tab：前のタブへ移動&#x0a;Ctrl + F：履歴検索欄へ移動" />
+                <TextBlock TextWrapping="Wrap" FontSize="14" Margin="0,4,0,0" Text="Ctrl + Space：履歴を展開／折りたたみ" />
                 <TextBlock Text="コマンドと出力" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="シェル・作業フォルダー・コマンドを指定して実行します。フォルダーはドラッグ＆ドロップでも指定できます。「停止」で実行を終了します。実行中は入力変更とタブ操作ができません。「出力をコピー」で表示中の結果をコピーできます。境界のバーを上下にドラッグすると、コマンド・出力・履歴の高さを調整できます。" />
                 <TextBlock Text="履歴とバックアップ" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="履歴を選択すると保存済みの出力を表示します。再実行はしません。「入力に戻す」またはダブルクリックでコマンドを再利用できます。検索、お気に入り、日別バックアップの保存と復元に対応しています。「お気に入り以外を削除」の前にはバックアップを保存します。日付が変わった最初の起動でも自動バックアップを取ります。" />
+                <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" Text="下部の履歴ボタンまたは Ctrl + Space で履歴・検索・バックアップを折りたためます。空いた縦幅は出力に割り当てます。再表示すると以前の高さへ戻ります。Ctrl + F は履歴を開いて検索へ移動します。実行中でも開閉でき、履歴や検索条件は保持します。" />
                 <TextBlock Text="タブと起動時の復元" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="タブをウィンドウ外へドラッグすると別ウィンドウになり、「元のウィンドウにまとめる」で戻せます。履歴はすべてのタブで共有です。終了時のタブは次回起動時に「復元」で戻せます。「復元」または「＋」を押すと復元ボタンは消えます。ウィンドウ位置とサイズは起動時に自動で復元します。" />
                 <TextBlock Text="外観設定" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />

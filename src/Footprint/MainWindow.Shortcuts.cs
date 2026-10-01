@@ -7,6 +7,12 @@ public partial class MainWindow
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         var modifiers = Keyboard.Modifiers;
+        if (modifiers == ModifierKeys.Control && e.Key == Key.Space)
+        {
+            e.Handled = true;
+            if (!e.IsRepeat) SetHistoryExpanded(!_historyExpanded);
+            return;
+        }
         if (modifiers == ModifierKeys.None && e.Key == Key.F1)
         {
             e.Handled = true;
@@ -16,6 +22,7 @@ public partial class MainWindow
         if (modifiers == ModifierKeys.Control && e.Key == Key.F)
         {
             e.Handled = true;
+            SetHistoryExpanded(true);
             SearchBox.Focus();
             SearchBox.SelectAll();
             return;
