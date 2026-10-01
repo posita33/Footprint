@@ -93,6 +93,7 @@ internal static class Program
         setRunning.Invoke(window, [true]);
         Require(limit.Visibility == Visibility.Collapsed, "A new run must clear the prior truncation notice.");
         setRunning.Invoke(window, [false]);
+        NewUiFeatureChecks.Run(window);
         var tabs = (TabControl)window.FindName("WorkspaceTabs");
         var first = new TabItem { Header = "テーマ確認" };
         var second = new TabItem { Header = "未選択" };

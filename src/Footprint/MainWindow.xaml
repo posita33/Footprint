@@ -121,8 +121,38 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Text="コマンド（複数行可・Shift + Enter で実行）" Margin="0,0,0,4" />
+                    <DockPanel Margin="0,0,0,4">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <ToggleButton x:Name="CommandWrapButton" Width="30" Height="26" Margin="4,0"
+                                          Background="{DynamicResource WorkspaceBackground}" BorderBrush="{DynamicResource SplitterBackground}"
+                                          Click="CommandWrap_Click" ToolTip="折り返しなし（クリックで右端で折り返し）"
+                                          AutomationProperties.Name="右端での折り返しを切り替え">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="WrapBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="1" CornerRadius="3" Padding="4">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True"><Setter TargetName="WrapBorder" Property="Background" Value="{DynamicResource TabHoverBackground}" /></Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="WrapBorder" Property="BorderThickness" Value="2" /></Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                                <Path Stroke="{DynamicResource LabelForeground}" StrokeThickness="1.6" Width="18" Height="16" Stretch="Uniform"
+                                      Data="M 1,2 L 17,2 M 1,7 L 13,7 Q 18,7 18,11 Q 18,15 13,15 L 8,15 M 11,12 L 8,15 L 11,18" />
+                            </ToggleButton>
+                            <Button x:Name="FormatCommandButton" Width="30" Height="26" Padding="4,2"
+                                    Click="FormatCommand_Click" ToolTip="オプションと値をまとめて複数行に整形（Ctrl + Z で元に戻す）"
+                                    AutomationProperties.Name="コマンドを複数行に整形">
+                                <Path Stroke="#182635" StrokeThickness="1.6" Width="18" Height="16" Stretch="Uniform"
+                                      Data="M 1,2 L 18,2 M 1,8 L 12,8 M 1,14 L 12,14 M 17,6 L 17,16 M 14,13 L 17,16 L 20,13" />
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Text="コマンド（複数行可・Shift + Enter で実行）" VerticalAlignment="Center" />
+                    </DockPanel>
                     <TextBox Grid.Row="1" x:Name="CommandBox" AcceptsReturn="True" AcceptsTab="True"
+                             TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"
                              FontSize="{DynamicResource CommandFontSize}"
                              FontFamily="Consolas" VerticalScrollBarVisibility="Auto"
                              PreviewKeyDown="CommandBox_PreviewKeyDown" />
@@ -208,6 +238,12 @@
             </DataGrid>
         </Grid>
         <DockPanel Grid.Row="4" Margin="0,10,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="VersionText" Margin="8,0" VerticalAlignment="Center" />
+                <Button x:Name="UpdateApplicationButton" Content="最新版に更新" Click="UpdateApplication_Click"
+                        ToolTip="GitHubの安定版を確認し、更新して再起動" Style="{StaticResource TabActionButtonStyle}" />
+            </StackPanel>
+
             <Button x:Name="HistoryToggleButton" Content="▼ 履歴を折りたたむ"
                     Click="ToggleHistory_Click" DockPanel.Dock="Left" Padding="10,4" Margin="0,0,12,0"
                     ToolTip="履歴の展開／折りたたみ（Ctrl + Space）" />

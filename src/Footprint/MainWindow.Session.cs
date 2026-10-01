@@ -44,9 +44,9 @@ public partial class MainWindow
         RestoreTabsButton.Visibility = Visibility.Collapsed;
     }
 
-    private void SaveWorkspaceSession()
+    private bool SaveWorkspaceSession()
     {
-        if (_isDetached) return;
+        if (_isDetached) return true;
         CaptureWorkspace();
         var workspaces = _workspaces.ToList();
         foreach (var window in DetachedWindows)
@@ -62,7 +62,8 @@ public partial class MainWindow
                 ActiveIndex = _activeWorkspaceIndex,
                 Window = WindowPosition.Capture(this)
             });
+            return true;
         }
-        catch (Exception error) { ShowError("タブの状態を保存できませんでした。", error); }
+        catch (Exception error) { ShowError("タブの状態を保存できませんでした。", error); return false; }
     }
 }
