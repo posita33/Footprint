@@ -9,25 +9,13 @@ try
         "Removing a middle tab must not duplicate the next tab name.");
     var outputRecord = new CommandRecord();
     var displayedOutput = new System.Text.StringBuilder();
-    var truncationCount = 0;
-    var boundedOutput = new CommandOutputCapture(outputRecord, chunk => displayedOutput.Append(chunk), () => truncationCount++);
-    boundedOutput.Receive(new string('a', 99_999));
-    boundedOutput.Receive("日本語");
-    boundedOutput.Receive("ignored");
-    Require(outputRecord.Output == new string('a', 99_999) + "日\n[出力の保存上限に達しました]\n",
-        "Output must stop at the limit and report truncation only once.");
-    Require(displayedOutput.ToString() == new string('a', 99_999) + "日本語ignored",
-        "Live output must include every character beyond the storage limit without a storage notice.");
-    Require(boundedOutput.IsTruncated && truncationCount == 1, "Storage truncation must notify exactly once.");
-    var exactRecord = new CommandRecord();
-    var exactOutput = new CommandOutputCapture(exactRecord, _ => { });
-    exactOutput.Receive(new string('b', CommandOutputCapture.OutputLimit));
-    exactOutput.Receive("");
-    Require(!exactOutput.IsTruncated && exactRecord.Output.Length == CommandOutputCapture.OutputLimit,
-        "Exactly the limit and empty chunks must not report lost output.");
-    exactOutput.Receive("tail");
-    Require(exactRecord.Output == new string('b', CommandOutputCapture.OutputLimit) + CommandOutputCapture.TruncationNotice,
-        "Output after an exact boundary must remain bounded with a single notice.");
+    var captureOutput = new CommandOutputCapture(outputRecord, chunk => displayedOutput.Append(chunk));
+    captureOutput.Receive(new string('a', 99_999));
+    captureOutput.Receive("日本語");
+    captureOutput.Receive("tail");
+    Require(outputRecord.Output == new string('a', 99_999) + "日本語tail" &&
+        displayedOutput.ToString() == outputRecord.Output, "Output beyond the old limit must be fully captured and displayed.");
+    await CompressedOutputChecks.RunAsync(directory);
     var store = new HistoryStore(directory);
     var settingsPath = Path.Combine(directory, "Settings", "preferences.json");
     var settingsStore = new AppearanceSettingsStore(settingsPath);
@@ -74,8 +62,8 @@ try
     Require(sessionStore.Load()!.Window is null, "Sessions without window placement must remain readable.");
     var liveWorkspace = new WorkspaceState { Output = displayedOutput.ToString() };
     sessionStore.Save(new WorkspaceSession { Workspaces = [liveWorkspace] });
-    Require(sessionStore.Load()!.Workspaces[0].Output == CommandOutputCapture.ForStorage(displayedOutput.ToString()),
-        "Session output must obey the same disk storage limit.");
+    Require(sessionStore.Load()!.Workspaces[0].Output == displayedOutput.ToString(),
+        "Session output must preserve all characters with compression.");
     Require(liveWorkspace.Output == displayedOutput.ToString(), "Saving must not truncate the in-memory live output.");
     await File.WriteAllTextAsync(sessionPath, "{\"Workspaces\":null}");
     try
@@ -198,8 +186,8 @@ try
         using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             await runner.RunAsync(longRecord, new CaptureProgress(longCapture), timeout.Token);
         Require(longRecord.Status == ExecutionStatus.Completed && live.ToString().EndsWith("TAIL_AFTER_LIMIT") &&
-            longRecord.Output == new string('x', CommandOutputCapture.OutputLimit) + CommandOutputCapture.TruncationNotice,
-            "A real long-running process must display trailing output while persisted output stays bounded.");
+            longRecord.Output == new string('x', 110000) + "TAIL_AFTER_LIMIT",
+            "A real long-running process must display trailing output and retain it for compressed storage.");
         var stopped = new CommandRecord
         {
             Command = "Start-Sleep -Seconds 30",

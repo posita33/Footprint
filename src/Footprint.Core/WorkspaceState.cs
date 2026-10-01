@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Footprint.Core;
 
 public sealed class WorkspaceState
@@ -6,5 +8,6 @@ public sealed class WorkspaceState
     public int ShellIndex { get; set; }
     public string WorkingDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     public string Command { get; set; } = "";
+    [JsonConverter(typeof(CompressedOutputConverter))]
     public string Output { get; set; } = "";
 }

@@ -46,7 +46,7 @@ public partial class MainWindow
         };
         _cancellation = new CancellationTokenSource();
         SetRunning(true);
-        OutputBox.Clear();
+        SetOutput("");
         StatusText.Text = "実行しています…";
         _executionTask = ExecuteAsync(record, _cancellation.Token);
         try { await _executionTask; }
@@ -77,8 +77,7 @@ public partial class MainWindow
         }
         _history.Insert(0, record);
         RefreshHistory();
-        var capture = new CommandOutputCapture(record, AppendLiveOutput,
-            () => OutputLimitText.Visibility = Visibility.Visible);
+        var capture = new CommandOutputCapture(record, AppendLiveOutput);
         // Dispatcher delivery completes before the result is persisted.
         var output = new DispatcherOutput(capture.Receive, Dispatcher);
         try { await new CommandRunner().RunAsync(record, output, cancellation); }
@@ -110,7 +109,7 @@ public partial class MainWindow
         if (running)
         {
             _stopRequested = false;
-            OutputLimitText.Visibility = Visibility.Collapsed;
+
             _executionElapsed.Restart();
             _executionTimer ??= new System.Windows.Threading.DispatcherTimer
             {
