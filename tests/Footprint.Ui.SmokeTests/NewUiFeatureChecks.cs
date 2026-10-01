@@ -87,7 +87,8 @@ function Start-Process {
             if (!process.WaitForExit(30000)) { process.Kill(entireProcessTree: true); throw new Exception("Installer test timed out."); }
             var errors = process.StandardError.ReadToEnd();
             Require(process.ExitCode == 0, "PowerShell installer must parse and run: " + errors);
-            Require(File.ReadAllText(target) == (failLaunch ? "old" : "new"), "Swap or rollback must retain the correct application.");
+            Require(File.ReadAllText(target) == (failLaunch ? "old" : "new"), "Swap or rollback must retain the correct application: " +
+                (File.Exists(target + ".error") ? File.ReadAllText(target + ".error") : errors));
             Require(File.ReadAllText(target + ".launched").Trim() == (failLaunch ? "old" : "new"), "Installer must relaunch the installed or restored application.");
             Require(File.Exists(target + ".error") == failLaunch && !File.Exists(backup) && !Directory.Exists(staging),
                 "Installer must report failures and clean staged files after swap or rollback.");

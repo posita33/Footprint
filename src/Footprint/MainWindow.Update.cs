@@ -27,7 +27,7 @@ public partial class MainWindow
             return;
         }
         _updateInProgress = true;
-        foreach (var window in windows) { window.UpdateApplicationButton.IsEnabled = false; window.RunButton.IsEnabled = false; }
+        foreach (var window in windows) { window.UpdateApplicationButton.IsEnabled = false; window.UpdateApplicationButton.Content = "更新確認中…"; window.RunButton.IsEnabled = false; }
         string? staging = null;
         try
         {
@@ -53,6 +53,7 @@ public partial class MainWindow
             staging = Path.Combine(Path.GetTempPath(), "Footprint-update-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(staging);
             StatusText.Text = $"v{release.Version} をダウンロード・検証しています…";
+            foreach (var window in windows) window.UpdateApplicationButton.Content = "ダウンロード中…";
             var zip = Path.Combine(staging, "update.zip");
             await client.DownloadAsync(release, zip);
             var extracted = Path.Combine(staging, "app");
@@ -97,6 +98,7 @@ public partial class MainWindow
                 foreach (var window in windows)
                 {
                     window.UpdateApplicationButton.IsEnabled = true;
+                    window.UpdateApplicationButton.Content = "最新版に更新";
                     window.RunButton.IsEnabled = window._isReady && window._cancellation is null;
                 }
         }
@@ -113,7 +115,7 @@ try {
     Move-Item -LiteralPath $config.target -Destination $config.backup
     $moved = $true
     Move-Item -LiteralPath $config.pending -Destination $config.target
-    Start-Process -FilePath $config.target -WorkingDirectory (Split-Path -LiteralPath $config.target)
+    Start-Process -FilePath $config.target -WorkingDirectory ([IO.Path]::GetDirectoryName([string]$config.target))
     Remove-Item -LiteralPath $config.backup -ErrorAction SilentlyContinue
 } catch {
     if ($moved) {
@@ -122,7 +124,7 @@ try {
     }
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show('更新に失敗しました。旧版を保持しています。' + [Environment]::NewLine + $_.Exception.Message, 'Footprint 更新') | Out-Null
-    if ($moved -and (Test-Path -LiteralPath $config.target)) { Start-Process -FilePath $config.target -WorkingDirectory (Split-Path -LiteralPath $config.target) }
+    if ($moved -and (Test-Path -LiteralPath $config.target)) { Start-Process -FilePath $config.target -WorkingDirectory ([IO.Path]::GetDirectoryName([string]$config.target)) }
 } finally {
     Remove-Item -LiteralPath $config.pending -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $config.staging -Recurse -Force -ErrorAction SilentlyContinue
