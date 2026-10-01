@@ -74,6 +74,10 @@
                     DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
             <Button Content="設定" Click="Settings_Click" ToolTip="テーマと文字サイズを変更"
                     DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
+            <Button x:Name="ImplementIssueButton" Content="実装・ビルド" Click="ImplementIssue_Click" ToolTip="Issueの実装を依頼し、ビルド結果を確認"
+                    DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
+            <Button x:Name="RequestIssueButton" Content="要望" Click="RequestIssue_Click" ToolTip="要望をGitHub Issueとして送信"
+                    DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
             <StackPanel Orientation="Horizontal" Height="40">
                 <TabControl x:Name="WorkspaceTabs" Height="40" SelectionChanged="WorkspaceTabs_SelectionChanged"
                             PreviewMouseMove="WorkspaceTabs_PreviewMouseMove" HorizontalAlignment="Left"
