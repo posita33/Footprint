@@ -95,8 +95,8 @@ try
     await store.EnsureDailyBackupAsync([record], backupDate);
     Require((await store.LoadBackupDatesAsync()).SequenceEqual([backupDate]), "Daily backup must be listed.");
     var backup = await store.LoadDailyBackupAsync(backupDate);
-    Require(backup.Count == 1 && backup[0].IsFavorite && backup[0].Output == "こんにちは\n",
-        "Existing daily backup must be preserved.");
+    Require(backup.Count == 1 && !backup[0].IsFavorite && backup[0].Output == "new output",
+        "Existing daily backup must update matching IDs without duplicating them.");
     var nextBackupDate = backupDate.AddDays(1);
     await store.EnsureDailyBackupAsync([record], nextBackupDate);
     var nextBackup = await store.LoadDailyBackupAsync(nextBackupDate);
@@ -104,6 +104,7 @@ try
         "A different execution date must not enter the daily backup.");
     var extra = new CommandRecord { StartedAt = record.StartedAt.AddDays(1), Command = "extra", WorkingDirectory = directory, Shell = ShellKind.PowerShell };
     await store.SaveAsync(extra);
+    backup[0].IsFavorite = true;
     await store.ReplaceAsync([record, extra], backup);
     (records, skipped) = await store.LoadAsync();
     Require(records.Count == 1 && records[0].IsFavorite, "Restore must replace valid history files.");
