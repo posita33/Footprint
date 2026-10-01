@@ -82,6 +82,7 @@ function Start-Process {
                 FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "WindowsPowerShell", "v1.0", "powershell.exe"),
                 UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true
             };
+            start.Environment.Remove("PSModulePath");
             foreach (var arg in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script }) start.ArgumentList.Add(arg);
             using var process = Process.Start(start)!;
             if (!process.WaitForExit(30000)) { process.Kill(entireProcessTree: true); throw new Exception("Installer test timed out."); }

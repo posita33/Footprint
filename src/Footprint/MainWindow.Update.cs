@@ -80,6 +80,7 @@ public partial class MainWindow
                 FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "WindowsPowerShell", "v1.0", "powershell.exe"),
                 UseShellExecute = false, CreateNoWindow = true
             };
+            start.Environment.Remove("PSModulePath");
             foreach (var argument in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script }) start.ArgumentList.Add(argument);
             using var installer = Process.Start(start) ?? throw new IOException("更新処理を開始できませんでした。");
             _updateRestarting = true;
@@ -110,7 +111,10 @@ $moved = $false
 try {
     $process = Get-Process -Id $config.pid -ErrorAction SilentlyContinue
     if ($process -and -not $process.WaitForExit(60000)) { throw 'アプリが終了しなかったため更新を中止しました。' }
-    if ((Get-FileHash -LiteralPath $config.target -Algorithm SHA256).Hash -ne $config.expected) { throw '更新対象が変更されたため中止しました。' }
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { $hash = [BitConverter]::ToString($sha.ComputeHash([IO.File]::ReadAllBytes([string]$config.target))).Replace('-', '') }
+    finally { $sha.Dispose() }
+    if ($hash -ne $config.expected) { throw '更新対象が変更されたため中止しました。' }
     Copy-Item -LiteralPath $config.source -Destination $config.pending
     Move-Item -LiteralPath $config.target -Destination $config.backup
     $moved = $true
