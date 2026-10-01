@@ -2,6 +2,10 @@
 
 Visual Studio / C# WPF で、画面から実行したコマンドを記録・検索・再利用する Windows 用ツールです。
 
+## 要望・実装依頼
+
+v1.3.7ではヘルプ・設定の左側の「要望」「実装・ビルド」から、Issue作成、GitHub Actionsへの実装依頼、試用ZIPの取得、正式版更新へ進めます。[認証・管理者設定・操作手順](docs/issue-implementation.md)を参照してください。
+
 ## 開発・起動
 
 アプリアイコンの元デザインは `src/Footprint/Assets/Footprint.svg` です。PythonとPillowで `python src/Footprint/Assets/build_icon.py` を実行すると、同じデザインのEXE・タスクバー用複数サイズICOを再生成できます（Pillowは `pip install Pillow` でインストール）。

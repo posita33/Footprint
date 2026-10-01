@@ -5,6 +5,7 @@ var directory = Path.Combine(Path.GetTempPath(), "Footprint-tests-" + Guid.NewGu
 try
 {
     await NewFeatureChecks.RunAsync(directory);
+    await IssueRequestChecks.RunAsync();
     Require(WorkspaceNames.Next(["タブ 1", "タブ 2", "タブ 4", "タブ 5"]) == "タブ 6",
         "Removing a middle tab must not duplicate the next tab name.");
     var outputRecord = new CommandRecord();
