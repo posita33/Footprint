@@ -38,10 +38,19 @@ public partial class MainWindow
     private void Search_Changed(object sender, TextChangedEventArgs e) => RefreshHistory();
     private void FavoriteFilter_Changed(object sender, RoutedEventArgs e) => RefreshHistory();
 
+    private bool FavoriteBackupSelected => BackupKindBox?.SelectedIndex == 1;
+
+    private async void BackupKind_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BackupDateBox is null || !_isReady) return;
+        try { await LoadBackupDatesAsync(); }
+        catch (Exception error) { ShowError("バックアップ一覧を読み込めませんでした。", error); }
+    }
+
     private async Task LoadBackupDatesAsync()
     {
         var selected = BackupDateBox.SelectedItem as string;
-        _backupDates = await _store.LoadBackupDatesAsync();
+        _backupDates = FavoriteBackupSelected ? await _store.LoadFavoriteBackupDatesAsync() : await _store.LoadBackupDatesAsync();
         BackupDateBox.ItemsSource = _backupDates
             .Select(date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToList();
         BackupDateBox.SelectedItem = BackupDateBox.Items.Cast<string>().FirstOrDefault(date => date == selected)
@@ -55,9 +64,9 @@ public partial class MainWindow
     {
         try
         {
-            await _store.SaveDailyBackupAsync(_history, DateOnly.FromDateTime(DateTime.Today));
+            await _store.SaveBackupsAsync(_history, DateOnly.FromDateTime(DateTime.Today));
             await LoadBackupDatesAsync();
-            StatusText.Text = "今日の履歴をバックアップしました。";
+            StatusText.Text = "実行日別の履歴と今日のお気に入りをバックアップしました。";
             NotifySharedHistoryChanged();
         }
         catch (Exception error) { ShowError("バックアップを保存できませんでした。", error); }
@@ -67,19 +76,24 @@ public partial class MainWindow
     {
         if (!TryGetSelectedBackupDate(out var date)) return;
         List<CommandRecord> records;
-        try { records = await _store.LoadDailyBackupAsync(date); }
+        try { records = FavoriteBackupSelected ? await _store.LoadFavoriteBackupAsync(date) : await _store.LoadDailyBackupAsync(date); }
         catch (Exception error)
         {
             ShowError("選択したバックアップを読み込めませんでした。", error);
             return;
         }
         if (MessageBox.Show(this,
-            $"{date:yyyy-MM-dd} のバックアップ（{records.Count} 件）で現在の履歴を置き換えます。\n現在の履歴は今日のバックアップとして保存されます。",
+            $"{date:yyyy-MM-dd} の{(FavoriteBackupSelected ? "お気に入り" : "履歴")}バックアップ（{records.Count} 件）を復元します。\n{(FavoriteBackupSelected ? "通常履歴を残してお気に入り状態を置き換えます。" : "現在の履歴を置き換えます。")}\n復元前に実行日別の履歴と今日のお気に入りを保存します。",
             "履歴を復元", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         try
         {
-            await _historyManager.RestoreAsync(_history, records, DateOnly.FromDateTime(DateTime.Today));
-            _history = records;
+            if (FavoriteBackupSelected)
+                _history = await _historyManager.RestoreFavoritesAsync(_history, records, DateOnly.FromDateTime(DateTime.Today));
+            else
+            {
+                await _historyManager.RestoreAsync(_history, records, DateOnly.FromDateTime(DateTime.Today));
+                _history = records;
+            }
             RefreshHistory();
             await LoadBackupDatesAsync();
             StatusText.Text = $"{date:yyyy-MM-dd} のバックアップから {_history.Count} 件を復元しました。";
@@ -97,7 +111,7 @@ public partial class MainWindow
             return;
         }
         if (MessageBox.Show(this,
-            $"お気に入り以外の履歴 {records.Count} 件を削除します。\n現在の履歴は今日のバックアップとして保存されます。",
+            $"お気に入り以外の履歴 {records.Count} 件を削除します。\n削除前に実行日別の履歴と今日のお気に入りを保存します。",
             "履歴を削除", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         try
         {
@@ -119,6 +133,7 @@ public partial class MainWindow
         if (CreateBackupButton is null || RestoreBackupButton is null || ClearNonFavoriteButton is null) return;
         var canManage = _isReady && _cancellation is null;
         CreateBackupButton.IsEnabled = canManage;
+        BackupKindBox.IsEnabled = BackupDateBox.IsEnabled = canManage;
         RestoreBackupButton.IsEnabled = canManage && TryGetSelectedBackupDate(out _);
         ClearNonFavoriteButton.IsEnabled = canManage && _history.Any(record => !record.IsFavorite);
     }

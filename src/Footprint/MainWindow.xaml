@@ -9,6 +9,7 @@
     <Window.Resources>
         <Style x:Key="WorkspaceTabStyle" TargetType="TabItem">
             <Setter Property="Height" Value="40" />
+            <Setter Property="Foreground" Value="{DynamicResource LabelForeground}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Padding" Value="16,7" />
@@ -19,7 +20,8 @@
                                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0"
                                 CornerRadius="6,6,0,0" Padding="{TemplateBinding Padding}">
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <MultiTrigger>
@@ -171,6 +173,9 @@
                     <Button x:Name="RestoreBackupButton" Content="選択した日付から復元" Click="RestoreBackup_Click" IsEnabled="False" />
                     <Button x:Name="ClearNonFavoriteButton" Content="お気に入り以外を削除" Click="ClearNonFavorite_Click" IsEnabled="False" />
                 </StackPanel>
+                <ComboBox x:Name="BackupKindBox" Width="100" SelectedIndex="0" SelectionChanged="BackupKind_SelectionChanged" DockPanel.Dock="Left" Margin="0,0,6,0">
+                    <ComboBoxItem Content="履歴" /><ComboBoxItem Content="お気に入り" />
+                </ComboBox>
                 <ComboBox x:Name="BackupDateBox" MinWidth="135" Padding="6" SelectionChanged="BackupDate_SelectionChanged"
                           ToolTip="復元する日別バックアップを選択" />
             </DockPanel>
