@@ -1,6 +1,10 @@
 using System.Windows;
 using System.Windows.Controls;
 using Footprint;
+using Footprint.Core;
+using System.Windows.Media;
+using System.Windows.Documents;
+using System.Reflection;
 
 internal static class Program
 {
@@ -51,6 +55,39 @@ internal static class Program
             historyRow.Height == new GridLength(2, GridUnitType.Star), "Expanding must restore the adjusted panel ratio.");
         Require(command.Text == "echo keep" && output.Text == "keep output" && search.Text == "keep search",
             "Toggling must preserve input, output and search.");
+        var tabs = (TabControl)window.FindName("WorkspaceTabs");
+        var first = new TabItem { Header = "テーマ確認" };
+        var second = new TabItem { Header = "未選択" };
+        tabs.Items.Clear();
+        tabs.Items.Add(first);
+        tabs.Items.Add(second);
+        tabs.SelectedIndex = 0;
+        var apply = typeof(MainWindow).Assembly.GetType("Footprint.Appearance")!
+            .GetMethod("Apply", BindingFlags.Public | BindingFlags.Static)!;
+        foreach (var dark in new[] { true, false, true })
+        {
+            apply.Invoke(null, [new AppearanceSettings { DarkTheme = dark }]);
+            Measure();
+            foreach (var tab in new[] { first, second })
+            {
+                var foreground = ((SolidColorBrush)tab.Foreground).Color;
+                var background = ((SolidColorBrush)app.Resources[tab.IsSelected ? "WorkspaceBackground" : "WindowBackground"]).Color;
+                double Luminance(Color color)
+                {
+                    double Channel(byte value) { var c = value / 255.0; return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4); }
+                    return 0.2126 * Channel(color.R) + 0.7152 * Channel(color.G) + 0.0722 * Channel(color.B);
+                }
+                double Contrast(Color bg) => (Math.Max(Luminance(foreground), Luminance(bg)) + 0.05) /
+                    (Math.Min(Luminance(foreground), Luminance(bg)) + 0.05);
+                Require(Contrast(background) >= 4.5 && Contrast(((SolidColorBrush)app.Resources["TabHoverBackground"]).Color) >= 4.5,
+                    "Selected, unselected and hover tab text must meet 4.5:1 contrast after live theme changes.");
+                tab.ApplyTemplate();
+                var border = (Border)tab.Template.FindName("TabBorder", tab);
+                var presenter = (ContentPresenter)border.Child;
+                Require(TextElement.GetForeground(presenter).ToString() == tab.Foreground.ToString(),
+                    "Header presenter must use the theme foreground.");
+            }
+        }
         Console.WriteLine("PASS: real WPF drawer layout, freed output height, command height, restored ratio and retained contents");
     }
 

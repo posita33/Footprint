@@ -86,6 +86,8 @@ try
         "Result and favorite status must survive reload.");
     Require(records[0].Matches("POWERSHELL") && records[0].Matches("こんにちは"), "Search must match shell and command.");
     var backupDate = new DateOnly(2026, 9, 30);
+    record.StartedAt = new DateTimeOffset(2026, 9, 30, 12, 0, 0, TimeZoneInfo.Local.GetUtcOffset(new DateTime(2026, 9, 30)));
+    records[0].StartedAt = record.StartedAt;
     await store.SaveDailyBackupAsync(records, backupDate);
     record.Output = "new output";
     record.IsFavorite = false;
@@ -93,15 +95,16 @@ try
     await store.EnsureDailyBackupAsync([record], backupDate);
     Require((await store.LoadBackupDatesAsync()).SequenceEqual([backupDate]), "Daily backup must be listed.");
     var backup = await store.LoadDailyBackupAsync(backupDate);
-    Require(backup.Count == 1 && backup[0].IsFavorite && backup[0].Output == "こんにちは\n",
-        "Existing daily backup must be preserved.");
+    Require(backup.Count == 1 && !backup[0].IsFavorite && backup[0].Output == "new output",
+        "Existing daily backup must update matching IDs without duplicating them.");
     var nextBackupDate = backupDate.AddDays(1);
     await store.EnsureDailyBackupAsync([record], nextBackupDate);
     var nextBackup = await store.LoadDailyBackupAsync(nextBackupDate);
-    Require(nextBackup.Count == 1 && !nextBackup[0].IsFavorite && nextBackup[0].Output == "new output",
-        "The first launch on a new date must save a new backup.");
-    var extra = new CommandRecord { Command = "extra", WorkingDirectory = directory, Shell = ShellKind.PowerShell };
+    Require(nextBackup.Count == 0,
+        "A different execution date must not enter the daily backup.");
+    var extra = new CommandRecord { StartedAt = record.StartedAt.AddDays(1), Command = "extra", WorkingDirectory = directory, Shell = ShellKind.PowerShell };
     await store.SaveAsync(extra);
+    backup[0].IsFavorite = true;
     await store.ReplaceAsync([record, extra], backup);
     (records, skipped) = await store.LoadAsync();
     Require(records.Count == 1 && records[0].IsFavorite, "Restore must replace valid history files.");
@@ -114,8 +117,17 @@ try
     await manager.ClearNonFavoritesAsync(records, nextBackupDate);
     Require(records.Count == 1 && records[0].IsFavorite, "Clear must retain favorite records.");
     var beforeClear = await store.LoadDailyBackupAsync(nextBackupDate);
-    Require(beforeClear.Count == 2, "Clear must back up history before deleting records.");
-    await manager.RestoreAsync(records, beforeClear, nextBackupDate.AddDays(1));
+    Require(beforeClear.Count == 1 && beforeClear[0].Id == extra.Id, "Clear must back up history before deleting records.");
+        var favorites = await store.LoadFavoriteBackupAsync(nextBackupDate);
+    Require(favorites.Count == 1 && favorites[0].Id == record.Id, "Favorite backup includes favorites from previous execution dates.");
+    Require((await store.LoadDailyBackupAsync(backupDate)).Count == 1, "Repeated saves must not duplicate records.");
+    records = await manager.RestoreFavoritesAsync(records, favorites, nextBackupDate.AddDays(1));
+    Require(records.Count == 1 && records[0].IsFavorite, "Favorite restore must recover favorite state.");
+    await store.SaveAsync(extra);
+    records.Add(extra);
+    records = await manager.RestoreFavoritesAsync(records, [], nextBackupDate.AddDays(2));
+    Require(records.Count == 2 && records.All(item => !item.IsFavorite), "Empty favorite restore must retain normal history and clear stars.");
+    await manager.RestoreAsync(records, backup.Concat(beforeClear).ToList(), nextBackupDate.AddDays(3));
     Require((await store.LoadAsync()).Records.Count == 2, "Manager restore must persist replacement history.");
     await store.DeleteAsync(extra);
     await File.WriteAllTextAsync(Path.Combine(directory, "broken.json"), "not json");

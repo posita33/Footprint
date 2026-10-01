@@ -15,14 +15,14 @@
                 <TextBlock Text="コマンドと出力" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="シェル・作業フォルダー・コマンドを指定して実行します。フォルダーはドラッグ＆ドロップでも指定できます。「停止」で実行を終了します。実行中は入力変更とタブ操作ができません。「出力をコピー」で表示中の結果をコピーできます。境界のバーを上下にドラッグすると、コマンド・出力・履歴の高さを調整できます。" />
                 <TextBlock Text="履歴とバックアップ" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
-                <TextBlock TextWrapping="Wrap" Text="履歴を選択すると保存済みの出力を表示します。再実行はしません。「入力に戻す」またはダブルクリックでコマンドを再利用できます。検索、お気に入り、日別バックアップの保存と復元に対応しています。「お気に入り以外を削除」の前にはバックアップを保存します。日付が変わった最初の起動でも自動バックアップを取ります。" />
+                <TextBlock TextWrapping="Wrap" Text="履歴を選択すると保存済みの出力を表示します。再実行はしません。「入力に戻す」またはダブルクリックでコマンドを再利用できます。検索、お気に入り、日別バックアップの保存と復元に対応しています。「お気に入り以外を削除」の前にはバックアップを保存します。起動時に実行日別の履歴と保存日別のお気に入りを自動保存します。通常バックアップは実行日が一致する履歴のみ、お気に入り専用バックアップは実行日に関係なく保存します。種別と日付を選んで復元できます。お気に入り復元は通常履歴を残して星印を置き換えます。" />
                 <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" Text="下部の履歴ボタンまたは Ctrl + Space で履歴・検索・バックアップを折りたためます。空いた縦幅は出力に割り当てます。再表示すると以前の高さへ戻ります。Ctrl + F は履歴を開いて検索へ移動します。実行中でも開閉でき、履歴や検索条件は保持します。" />
                 <TextBlock Text="タブと起動時の復元" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="タブをウィンドウ外へドラッグすると別ウィンドウになり、「元のウィンドウにまとめる」で戻せます。履歴はすべてのタブで共有です。終了時のタブは次回起動時に「復元」で戻せます。「復元」または「＋」を押すと復元ボタンは消えます。ウィンドウ位置とサイズは起動時に自動で復元します。" />
                 <TextBlock Text="外観設定" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
                 <TextBlock TextWrapping="Wrap" Text="右上の「設定」でライト／ダークのテーマと、コマンド・出力の文字サイズ（12～24）を選べます。「保存」で全ウィンドウに反映し、次回起動時にも適用します。「キャンセル」では変更しません。「標準に戻す」は選択値を初期値へ戻し、保存するまでは反映しません。設定は %LOCALAPPDATA%\Footprint\Settings.json に保存します。" />
                 <TextBlock Text="保存先と注意" FontSize="18" FontWeight="Bold" Margin="0,20,0,8" />
-                <TextBlock TextWrapping="Wrap" Text="履歴：%LOCALAPPDATA%\Footprint\History&#x0a;バックアップ：History\Backups&#x0a;タブとウィンドウ：%LOCALAPPDATA%\Footprint\Session.json&#x0a;&#x0a;「履歴フォルダーを開く」で保存先を開けます。コマンドと出力は平文で保存されるため、パスワードやトークンを入力しないでください。各実行は独立したシェルで、cd・変数・プロファイルは次の実行に引き継ぎません。対話入力が必要なコマンドには対応していません。出力の保存は先頭約100,000文字までです。" />
+                <TextBlock TextWrapping="Wrap" Text="履歴：%LOCALAPPDATA%\Footprint\History&#x0a;実行日別バックアップ：History\Backups&#x0a;お気に入りバックアップ：History\FavoriteBackups&#x0a;タブとウィンドウ：%LOCALAPPDATA%\Footprint\Session.json&#x0a;&#x0a;「履歴フォルダーを開く」で保存先を開けます。コマンドと出力は平文で保存されるため、パスワードやトークンを入力しないでください。各実行は独立したシェルで、cd・変数・プロファイルは次の実行に引き継ぎません。対話入力が必要なコマンドには対応していません。出力の保存は先頭約100,000文字までです。" />
             </StackPanel>
         </ScrollViewer>
     </DockPanel>
