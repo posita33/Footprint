@@ -20,7 +20,7 @@ public partial class MainWindow
 
     private async void Run_Click(object sender, RoutedEventArgs e)
     {
-        if (_cancellation is not null) return;
+        if (_cancellation is not null || _updateInProgress) return;
         if (string.IsNullOrWhiteSpace(CommandBox.Text))
         {
             StatusText.Text = "コマンドを入力してください。";
@@ -129,7 +129,9 @@ public partial class MainWindow
             _executionTimer?.Stop();
             _executionElapsed.Stop();
         }
-        RunButton.IsEnabled = !running && _isReady;
+        RunButton.IsEnabled = !running && _isReady && !_updateInProgress;
+        FormatCommandButton.IsEnabled = !running && !_updateInProgress;
+        UpdateApplicationButton.IsEnabled = !running && !_updateInProgress;
         RestoreTabsButton.IsEnabled = !running;
         StopButton.IsEnabled = running;
         FavoriteButton.IsEnabled = !running && HistoryGrid.SelectedItem is CommandRecord;

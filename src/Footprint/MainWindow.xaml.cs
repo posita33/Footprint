@@ -38,6 +38,7 @@ public partial class MainWindow : Window
         _historyManager = new HistoryManager(_store);
         _isDetached = isDetached;
         InitializeComponent();
+        VersionText.Text = VersionLabel;
         _workspaces.Add(workspace ?? new WorkspaceState { Title = "タブ 1" });
         RefreshTabs(0);
         if (isDetached) DetachedWindows.Add(this); else _primaryWindow ??= this;
@@ -81,7 +82,7 @@ public partial class MainWindow : Window
             Close();
             return;
         }
-        SaveWorkspaceSession();
+        if (!_updateRestarting) SaveWorkspaceSession();
         SharedHistoryChanged -= OnSharedHistoryChanged;
         DetachedWindows.Remove(this);
         if (ReferenceEquals(_primaryWindow, this)) _primaryWindow = null;

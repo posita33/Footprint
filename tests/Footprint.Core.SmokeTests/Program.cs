@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 var directory = Path.Combine(Path.GetTempPath(), "Footprint-tests-" + Guid.NewGuid().ToString("N"));
 try
 {
+    await NewFeatureChecks.RunAsync(directory);
     Require(WorkspaceNames.Next(["タブ 1", "タブ 2", "タブ 4", "タブ 5"]) == "タブ 6",
         "Removing a middle tab must not duplicate the next tab name.");
     var outputRecord = new CommandRecord();
@@ -176,6 +177,17 @@ try
         }
         if (NativeMethods.GetOEMCP() != 932)
             Console.WriteLine("SKIP: Japanese CMD output test (Japanese OEM code page required)");
+        foreach (var shell in new[] { ShellKind.CommandPrompt, ShellKind.PowerShell })
+        {
+            var command = shell == ShellKind.CommandPrompt ? "echo format preserved" : "Write-Output -InputObject 'format preserved'";
+            Require(CommandFormatter.TryFormat(command, shell, out var formatted, out _), "Shell smoke command must format.");
+            var formatRecord = new CommandRecord { Command = formatted, WorkingDirectory = directory, Shell = shell };
+            var formatOutput = new OutputCapture();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await runner.RunAsync(formatRecord, formatOutput, timeout.Token);
+            Require(formatRecord.ExitCode == 0 && formatOutput.Text.Trim() == "format preserved",
+                $"{shell}: continuation formatting must preserve execution semantics.");
+        }
         var longRecord = new CommandRecord
         {
             Command = "[Console]::Write(('x' * 110000)); Start-Sleep -Milliseconds 200; [Console]::Write('TAIL_AFTER_LIMIT')",
