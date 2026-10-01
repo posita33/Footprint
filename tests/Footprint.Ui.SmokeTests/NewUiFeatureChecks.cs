@@ -32,7 +32,14 @@ internal static class NewUiFeatureChecks
         Require(command.Text.Contains("-i \"input file.mp4\"") && command.Text.Contains(" ^\r\n"), "Format icon must group values with shell continuation.");
         command.Undo();
         Require(command.Text == original, "One undo must restore the exact original command.");
-        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.6", "Current release version must be visible.");
+        Require(window.FindName("RequestIssueButton") is Button && window.FindName("ImplementIssueButton") is Button,
+            "Request and implementation entry buttons must exist.");
+        var requests = new RequestWindow(false, () => { });
+        Require(((PasswordBox)requests.FindName("TokenBox")).Password.Length == 0 &&
+            requests.FindName("BusyIndicator") is ProgressBar && requests.FindName("UpdateButton") is Button,
+            "Request dialog must start without credentials and offer progress and update actions.");
+        requests.Close();
+        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.7", "Current release version must be visible.");
         var running = typeof(MainWindow).GetMethod("SetRunning", BindingFlags.Instance | BindingFlags.NonPublic)!;
         running.Invoke(window, [true]);
         Require(!format.IsEnabled && !((Button)window.FindName("UpdateApplicationButton")).IsEnabled && wrap.IsEnabled,

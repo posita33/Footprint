@@ -16,7 +16,7 @@ public partial class MainWindow
     private static bool _updateInProgress;
     private static bool _updateRestarting;
     private static Version CurrentVersion => typeof(MainWindow).Assembly.GetName().Version!;
-    private static string VersionLabel => $"v{CurrentVersion.Major}.{CurrentVersion.Minor}.{CurrentVersion.Build}";
+    internal static string VersionLabel => $"v{CurrentVersion.Major}.{CurrentVersion.Minor}.{CurrentVersion.Build}";
 
     private async void UpdateApplication_Click(object sender, RoutedEventArgs e)
     {
