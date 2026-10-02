@@ -11,6 +11,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Validate release workflow syntax
+        run: >-
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          .github/workflows/release.yml
       - run: dotnet build Footprint.sln --configuration Release
       - run: dotnet run --project tests/Footprint.Core.SmokeTests --configuration Release --no-build
       - run: dotnet run --project tests/Footprint.Ui.SmokeTests --configuration Release
