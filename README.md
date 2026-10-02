@@ -2,9 +2,9 @@
 
 Visual Studio / C# WPF で、画面から実行したコマンドを記録・検索・再利用する Windows 用ツールです。
 
-## 要望・実装依頼
+## 要望の送信
 
-v1.3.7ではヘルプ・設定の左側の「要望」「実装・ビルド」から、Issue作成、GitHub Actionsへの実装依頼、試用ZIPの取得、正式版更新へ進めます。[認証・管理者設定・操作手順](docs/issue-implementation.md)を参照してください。
+v1.3.8ではヘルプ・設定の左側の「要望」からIssueを作成できます。GitHubトークンはWindowsユーザー単位で暗号化して設定ファイルに保存し、次回自動入力できます。[認証・保存・削除の操作手順](docs/issue-implementation.md)を参照してください。履歴フォルダーは履歴欄のフォルダーアイコンから開きます。
 
 ## 開発・起動
 
@@ -17,6 +17,8 @@ v1.3.7ではヘルプ・設定の左側の「要望」「実装・ビルド」�
 - コア機能の検証: `dotnet run --project tests/Footprint.Core.SmokeTests`
 
 ## 公開用リリース
+
+mainへ新しい版番号をマージすると、Windowsでビルド・コア/UIテストに成功した後、版番号に対応するタグと正式リリースを自動作成します。同じ版の公開済みリリースは変更しません。
 
 `v1.0.0` のような `v` で始まるタグを GitHub へ push すると、Windows x64 向けの自己完結型 Release ビルドが `Footprint-win-x64.zip` として GitHub Release に添付されます。ZIP を展開して `Footprint.exe` を起動してください。.NET の別途インストールは不要です。
 
