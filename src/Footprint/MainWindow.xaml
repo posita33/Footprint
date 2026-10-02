@@ -74,8 +74,6 @@
                     DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
             <Button Content="設定" Click="Settings_Click" ToolTip="テーマと文字サイズを変更"
                     DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
-            <Button x:Name="ImplementIssueButton" Content="実装・ビルド" Click="ImplementIssue_Click" ToolTip="Issueの実装を依頼し、ビルド結果を確認"
-                    DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
             <Button x:Name="RequestIssueButton" Content="要望" Click="RequestIssue_Click" ToolTip="要望をGitHub Issueとして送信"
                     DockPanel.Dock="Right" Style="{StaticResource TabActionButtonStyle}" />
             <StackPanel Orientation="Horizontal" Height="40">
@@ -219,7 +217,11 @@
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                     <Button x:Name="FavoriteButton" Content="☆ お気に入り" Click="Favorite_Click" IsEnabled="False" />
                     <Button Content="入力に戻す" Click="Reuse_Click" /><Button Content="コピー" Click="Copy_Click" />
-                    <Button Content="履歴フォルダーを開く" Click="OpenHistoryFolder_Click" />
+                    <Button x:Name="OpenHistoryFolderButton" Click="OpenHistoryFolder_Click" Width="34" Padding="6,4"
+                            ToolTip="履歴フォルダーを開く" AutomationProperties.Name="履歴フォルダーを開く">
+                        <Path Width="18" Height="16" Stretch="Uniform" Stroke="#182635" StrokeThickness="1.5"
+                              Fill="Transparent" Data="M 1,4 L 1,16 L 19,16 L 19,6 L 9,6 L 7,4 Z M 1,6 L 1,2 L 7,2 L 9,4 L 17,4 L 17,6" />
+                    </Button>
                 </StackPanel>
                 <CheckBox x:Name="FavoritesOnlyBox" Content="お気に入りのみ" Margin="0,0,12,0"
                           VerticalAlignment="Center" Checked="FavoriteFilter_Changed" Unchecked="FavoriteFilter_Changed" />
