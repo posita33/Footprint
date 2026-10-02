@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: footprint-release
+  cancel-in-progress: false
+
 jobs:
   package:
     runs-on: windows-latest
