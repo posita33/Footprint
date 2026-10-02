@@ -83,10 +83,14 @@ jobs:
           if-no-files-found: error
       - name: Create GitHub Release
         if: steps.release.outputs.build == 'true' && steps.release.outputs.publish == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.release.outputs.tag }}
-          target_commitish: ${{ github.sha }}
-          name: Footprint ${{ steps.release.outputs.tag }}
-          body_path: ${{ steps.release.outputs.notes }}
-          files: artifacts/Footprint-win-x64.zip
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_NOTES: ${{ steps.release.outputs.notes }}
+        run: |
+          $arguments = @('release', 'create', $env:RELEASE_TAG, 'artifacts/Footprint-win-x64.zip', '--title', "Footprint $env:RELEASE_TAG", '--target', $env:GITHUB_SHA)
+          if ($env:RELEASE_NOTES) { $arguments += @('--notes-file', $env:RELEASE_NOTES) }
+          else { $arguments += @('--generate-notes') }
+          gh @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

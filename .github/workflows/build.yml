@@ -11,13 +11,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Diagnose release startup
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          $html = (Invoke-WebRequest 'https://github.com/posita33/Footprint/actions/runs/36957186294').Content
-          $matches = [regex]::Matches($html, '(?is).{0,100}(Invalid workflow|workflow file|not allowed|workflow error|startup_failure|error-message|The workflow|errors&quot;|annotations|workflowError).{0,500}')
-          foreach ($item in $matches) { Write-Output $item.Value }
       - name: Validate release workflow syntax
         run: >-
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
