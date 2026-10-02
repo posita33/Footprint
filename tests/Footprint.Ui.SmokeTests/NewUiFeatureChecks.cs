@@ -32,14 +32,13 @@ internal static class NewUiFeatureChecks
         Require(command.Text.Contains("-i \"input file.mp4\"") && command.Text.Contains(" ^\r\n"), "Format icon must group values with shell continuation.");
         command.Undo();
         Require(command.Text == original, "One undo must restore the exact original command.");
-        Require(window.FindName("RequestIssueButton") is Button && window.FindName("ImplementIssueButton") is Button,
-            "Request and implementation entry buttons must exist.");
-        var requests = new RequestWindow(false, () => { });
-        Require(((PasswordBox)requests.FindName("TokenBox")).Password.Length == 0 &&
-            requests.FindName("BusyIndicator") is ProgressBar && requests.FindName("UpdateButton") is Button,
-            "Request dialog must start without credentials and offer progress and update actions.");
-        requests.Close();
-        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.7", "Current release version must be visible.");
+        Require(window.FindName("RequestIssueButton") is Button && window.FindName("ImplementIssueButton") == null,
+            "Only the Issue entry button must remain.");
+        Require(((Button)window.FindName("OpenHistoryFolderButton")).Content is System.Windows.Shapes.Path &&
+            ((Button)window.FindName("OpenHistoryFolderButton")).ToolTip.ToString() == "履歴フォルダーを開く",
+            "History folder must use an icon with an explanatory tooltip.");
+        TestSavedToken();
+        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.8", "Current release version must be visible.");
         var running = typeof(MainWindow).GetMethod("SetRunning", BindingFlags.Instance | BindingFlags.NonPublic)!;
         running.Invoke(window, [true]);
         Require(!format.IsEnabled && !((Button)window.FindName("UpdateApplicationButton")).IsEnabled && wrap.IsEnabled,
@@ -48,6 +47,39 @@ internal static class NewUiFeatureChecks
         TestInstaller(false);
         TestInstaller(true);
         Console.WriteLine("PASS: wrap icons, horizontal scrolling, grouped formatting, undo, version, execution guards, installer swap and rollback");
+    }
+
+    private static void TestSavedToken()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Footprint-token-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(directory, "GitHubSettings.json");
+        var store = new GitHubTokenStore(path);
+        try
+        {
+            Require(store.Load() == "", "Missing token settings must start empty.");
+            store.Save("test-token-never-real");
+            Require(store.Load() == "test-token-never-real" && !File.ReadAllText(path).Contains("test-token-never-real"),
+                "Saved credentials must round-trip with DPAPI and never appear as plaintext.");
+            var requests = new RequestWindow(store);
+            Require(((PasswordBox)requests.FindName("TokenBox")).Password == "test-token-never-real" &&
+                requests.FindName("ImplementButton") == null && requests.FindName("UpdateButton") == null &&
+                requests.FindName("BusyIndicator") is ProgressBar,
+                "Issue dialog must restore credentials and omit implementation and update buttons.");
+            ((Button)requests.FindName("DeleteTokenButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Require(!File.Exists(path) && ((PasswordBox)requests.FindName("TokenBox")).Password == "" &&
+                ((CheckBox)requests.FindName("SaveTokenBox")).IsChecked == false,
+                "Deleting saved credentials must clear the file and input without saving again.");
+            requests.Close();
+            store.Save("another-test-token");
+            File.WriteAllText(path, "{invalid");
+            var corrupt = new RequestWindow(store);
+            Require(((PasswordBox)corrupt.FindName("TokenBox")).Password == "" &&
+                ((TextBlock)corrupt.FindName("StatusText")).Text.Contains("読み込めません") &&
+                File.ReadAllText(path) == "{invalid", "Corrupt credentials must be reported without overwriting the file.");
+            corrupt.Close();
+            store.Delete();
+        }
+        finally { if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true); }
     }
 
     private static void TestInstaller(bool failLaunch)

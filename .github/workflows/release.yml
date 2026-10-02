@@ -2,6 +2,7 @@ name: Create release package
 
 on:
   push:
+    branches: [main]
     tags:
       - "v*"
   workflow_dispatch:
@@ -9,16 +10,56 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: footprint-release
+  cancel-in-progress: false
+
 jobs:
   package:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Determine release
+        id: release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const match = fs.readFileSync('src/Footprint/Footprint.csproj', 'utf8').match(/<Version>([0-9]+\.[0-9]+\.[0-9]+)<\/Version>/);
+            if (!match) throw new Error('Missing stable application version');
+            const tag = 'v' + match[1];
+            const mainPush = context.eventName === 'push' && context.ref === 'refs/heads/main';
+            if (context.ref.startsWith('refs/tags/') && context.ref !== 'refs/tags/' + tag)
+              throw new Error('Release tag does not match application version');
+            let build = true;
+            if (mainPush) {
+              try {
+                await github.rest.repos.getReleaseByTag({ ...context.repo, tag });
+                build = false;
+              } catch (error) { if (error.status !== 404) throw error; }
+            }
+            const notes = 'docs/releases/' + tag + '.md';
+            core.setOutput('notes', fs.existsSync(notes) ? notes : '');
+            core.setOutput('tag', tag);
+            core.setOutput('build', String(build));
+            core.setOutput('publish', String(mainPush || context.ref.startsWith('refs/tags/')));
       - uses: actions/setup-dotnet@v4
+        if: steps.release.outputs.build == 'true'
         with:
           dotnet-version: '8.0.x'
+      - name: Verify release build and smoke tests
+        if: steps.release.outputs.build == 'true'
+        shell: pwsh
+        run: |
+          dotnet build Footprint.sln --configuration Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/Footprint.Core.SmokeTests --configuration Release --no-build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/Footprint.Ui.SmokeTests --configuration Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Publish self-contained Windows application
+        if: steps.release.outputs.build == 'true'
         run: >
           dotnet publish src/Footprint/Footprint.csproj
           --configuration Release
@@ -30,16 +71,22 @@ jobs:
           -p:DebugSymbols=false
           --output artifacts/publish/Footprint
       - name: Create ZIP package
+        if: steps.release.outputs.build == 'true'
         shell: pwsh
         run: Compress-Archive -Path "artifacts/publish/Footprint/*" -DestinationPath "artifacts/Footprint-win-x64.zip"
       - name: Upload release package
+        if: steps.release.outputs.build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Footprint-win-x64
           path: artifacts/Footprint-win-x64.zip
           if-no-files-found: error
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.release.outputs.build == 'true' && steps.release.outputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Footprint ${{ steps.release.outputs.tag }}
+          body_path: ${{ steps.release.outputs.notes }}
           files: artifacts/Footprint-win-x64.zip
