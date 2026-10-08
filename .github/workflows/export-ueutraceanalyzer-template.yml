@@ -1,0 +1,51 @@
+name: Export UEUtraceAnalyzer WPF source template
+on:
+  push:
+    branches: ['template/ueutraceanalyzer-starter']
+permissions:
+  contents: read
+jobs:
+  verify-and-export:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Validate template workflows
+        working-directory: templates/UEUtraceAnalyzer
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/build.yml .github/workflows/release.yml
+      - name: Build WPF template
+        working-directory: templates/UEUtraceAnalyzer
+        run: dotnet build UEUtraceAnalyzer.sln --configuration Release
+      - name: Run core smoke tests
+        working-directory: templates/UEUtraceAnalyzer
+        run: dotnet run --project tests/UEUtraceAnalyzer.Core.SmokeTests --configuration Release --no-build
+      - name: Run Windows UI smoke tests
+        working-directory: templates/UEUtraceAnalyzer
+        run: dotnet run --project tests/UEUtraceAnalyzer.Ui.SmokeTests --configuration Release --no-build
+      - name: Export tracked source files
+        shell: pwsh
+        run: |
+          $prefix = 'templates/UEUtraceAnalyzer/'
+          $destination = Join-Path $PWD 'artifacts/template/UEUtraceAnalyzer'
+          $files = git ls-files -- $prefix
+          foreach ($file in $files) {
+            $relative = $file.Substring($prefix.Length)
+            $target = Join-Path $destination $relative
+            New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $file -Destination $target -Force
+          }
+          if ($files.Count -ne 39) { throw 'Unexpected source file count' }
+          if (Get-ChildItem -LiteralPath $destination -Recurse -Force -File | Where-Object { $_.Extension -in '.dll', '.exe', '.pdb' }) {
+            throw 'Build outputs must not be included'
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UEUtraceAnalyzer-source
+          path: artifacts/template/
+          include-hidden-files: true
+          if-no-files-found: error
+          compression-level: 9
+          retention-days: 30

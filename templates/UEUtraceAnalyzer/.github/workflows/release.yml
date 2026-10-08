@@ -1,0 +1,105 @@
+name: Create release package
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+  pull_request:
+    paths: ['.github/workflows/release.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ueutraceanalyzer-release
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Determine release
+        id: release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = ([xml](Get-Content 'src/UEUtraceAnalyzer/UEUtraceAnalyzer.csproj' -Raw)).Project.PropertyGroup.Version
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Missing stable application version' }
+          $tag = "v$version"
+          $mainPush = $env:GITHUB_EVENT_NAME -eq 'push' -and $env:GITHUB_REF -eq 'refs/heads/main'
+          if ($env:GITHUB_REF.StartsWith('refs/tags/') -and $env:GITHUB_REF -ne "refs/tags/$tag") {
+            throw 'Release tag does not match application version'
+          }
+          $build = 'true'
+          if ($mainPush) {
+            try {
+              Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/tags/$tag" -Headers @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' } | Out-Null
+              $build = 'false'
+            } catch {
+              if ([int]$_.Exception.Response.StatusCode -ne 404) { throw }
+            }
+          }
+          $notes = "docs/releases/$tag.md"
+          if (-not (Test-Path -LiteralPath $notes)) { $notes = '' }
+          $publish = ($mainPush -or $env:GITHUB_REF.StartsWith('refs/tags/')).ToString().ToLowerInvariant()
+          "tag=$tag", "build=$build", "publish=$publish", "notes=$notes" | Add-Content -Path $env:GITHUB_OUTPUT -Encoding utf8
+      - uses: actions/setup-dotnet@v4
+        if: steps.release.outputs.build == 'true'
+        with:
+          dotnet-version: '8.0.x'
+      - name: Verify release build and smoke tests
+        if: steps.release.outputs.build == 'true'
+        shell: pwsh
+        run: |
+          dotnet build UEUtraceAnalyzer.sln --configuration Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/UEUtraceAnalyzer.Core.SmokeTests --configuration Release --no-build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet run --project tests/UEUtraceAnalyzer.Ui.SmokeTests --configuration Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Publish self-contained Windows application
+        if: steps.release.outputs.build == 'true'
+        run: >
+          dotnet publish src/UEUtraceAnalyzer/UEUtraceAnalyzer.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          --output artifacts/publish/UEUtraceAnalyzer
+      - name: Create ZIP package
+        if: steps.release.outputs.build == 'true'
+        shell: pwsh
+        run: Compress-Archive -Path "artifacts/publish/UEUtraceAnalyzer/*" -DestinationPath "artifacts/UEUtraceAnalyzer-win-x64.zip"
+      - name: Create source ZIP
+        if: steps.release.outputs.build == 'true'
+        run: git archive --format=zip --prefix=UEUtraceAnalyzer/ --output=artifacts/UEUtraceAnalyzer-source.zip HEAD
+      - name: Upload release package
+        if: steps.release.outputs.build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: UEUtraceAnalyzer-win-x64
+          path: |
+            artifacts/UEUtraceAnalyzer-win-x64.zip
+            artifacts/UEUtraceAnalyzer-source.zip
+          if-no-files-found: error
+      - name: Create GitHub Release
+        if: steps.release.outputs.build == 'true' && steps.release.outputs.publish == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_NOTES: ${{ steps.release.outputs.notes }}
+        run: |
+          $arguments = @('release', 'create', $env:RELEASE_TAG, 'artifacts/UEUtraceAnalyzer-win-x64.zip', 'artifacts/UEUtraceAnalyzer-source.zip', '--title', "UEUtraceAnalyzer $env:RELEASE_TAG", '--target', $env:GITHUB_SHA)
+          if ($env:RELEASE_NOTES) { $arguments += @('--notes-file', $env:RELEASE_NOTES) }
+          else { $arguments += @('--generate-notes') }
+          gh @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
