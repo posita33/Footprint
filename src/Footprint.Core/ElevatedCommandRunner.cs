@@ -120,7 +120,6 @@ public static class ElevatedCommandRunner
         finally
         {
             cancellation.Cancel();
-            pipe.Dispose();
             await monitor.ConfigureAwait(false);
         }
     }
