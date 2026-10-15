@@ -187,6 +187,7 @@ public partial class MainWindow
         CommandBox.Text = record.Command;
         DirectoryBox.Text = record.WorkingDirectory;
         ShellBox.SelectedIndex = record.Shell == ShellKind.CommandPrompt ? 0 : 1;
+        AdministratorBox.IsChecked = record.RunAsAdministrator;
         CommandBox.Focus();
         StatusText.Text = "コマンドを入力に戻しました。内容を確認して実行してください。";
     }
