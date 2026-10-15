@@ -21,6 +21,7 @@ public static class ElevatedCommandRunner
         string executable)
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Windows が必要です。");
+        cancellation.ThrowIfCancellationRequested();
         if (IsElevated) { await new CommandRunner().RunAsync(record, output, cancellation); return; }
         var pipeName = "Footprint-" + Guid.NewGuid().ToString("N");
         // Use user SID (not token owner): UAC changes the owner/elevation level.
