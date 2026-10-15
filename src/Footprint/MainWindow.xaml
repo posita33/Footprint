@@ -110,7 +110,7 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,12,0">
                         <DockPanel Margin="0,0,0,4">
-                            <CheckBox x:Name="AdministratorBox" Content="管理者実行" DockPanel.Dock="Right" Margin="10,0,0,0"
+                            <CheckBox x:Name="AdministratorBox" Content="管理者実行" Foreground="{DynamicResource LabelForeground}" DockPanel.Dock="Right" Margin="10,0,0,0"
                                       ToolTip="管理者権限でコマンドを実行します。WindowsのUAC確認が表示されます。" />
                             <TextBlock Text="シェル" />
                         </DockPanel>

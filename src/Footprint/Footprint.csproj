@@ -2,6 +2,7 @@
   <PropertyGroup>
     <Version>1.3.9</Version>
     <OutputType>WinExe</OutputType>
+    <StartupObject>Footprint.Program</StartupObject>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>

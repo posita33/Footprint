@@ -14,8 +14,15 @@ namespace Footprint.Core;
 public static class ElevatedCommandRunner
 {
     public const string WorkerArgument = "--elevated-command";
-    public static bool IsElevated => OperatingSystem.IsWindows() &&
-        new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+    public static bool IsElevated
+    {
+        get
+        {
+            if (!OperatingSystem.IsWindows()) return false;
+            using var identity = WindowsIdentity.GetCurrent();
+            return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+        }
+    }
 
     public static async Task RunAsync(CommandRecord record, IProgress<string> output, CancellationToken cancellation,
         string executable)
@@ -26,9 +33,10 @@ public static class ElevatedCommandRunner
         var pipeName = "Footprint-" + Guid.NewGuid().ToString("N");
         // Use user SID (not token owner): UAC changes the owner/elevation level.
         // Administrators also permits UAC credential prompts for another administrator account.
+        using var identity = WindowsIdentity.GetCurrent();
         var security = new PipeSecurity();
         security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
-        security.AddAccessRule(new PipeAccessRule(WindowsIdentity.GetCurrent().User!, PipeAccessRights.FullControl, AccessControlType.Allow));
+        security.AddAccessRule(new PipeAccessRule(identity.User!, PipeAccessRights.FullControl, AccessControlType.Allow));
         security.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
             PipeAccessRights.FullControl, AccessControlType.Allow));
         using var pipe = NamedPipeServerStreamAcl.Create(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte,
