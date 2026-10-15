@@ -42,12 +42,14 @@ public partial class MainWindow
         {
             Command = CommandBox.Text,
             WorkingDirectory = workingDirectory,
-            Shell = ShellBox.SelectedIndex == 0 ? ShellKind.CommandPrompt : ShellKind.PowerShell
+            Shell = ShellBox.SelectedIndex == 0 ? ShellKind.CommandPrompt : ShellKind.PowerShell,
+            RunAsAdministrator = AdministratorBox.IsChecked == true
         };
         _cancellation = new CancellationTokenSource();
         SetRunning(true);
         SetOutput("");
-        StatusText.Text = "実行しています…";
+        StatusText.Text = record.RunAsAdministrator
+            ? "管理者実行を開始しています。UAC確認が表示された場合は承認してください。" : "実行しています…";
         _executionTask = ExecuteAsync(record, _cancellation.Token);
         try { await _executionTask; }
         finally
@@ -80,7 +82,13 @@ public partial class MainWindow
         var capture = new CommandOutputCapture(record, AppendLiveOutput);
         // Dispatcher delivery completes before the result is persisted.
         var output = new DispatcherOutput(capture.Receive, Dispatcher);
-        try { await new CommandRunner().RunAsync(record, output, cancellation); }
+        try
+        {
+            if (record.RunAsAdministrator)
+                await ElevatedCommandRunner.RunAsync(record, output, cancellation,
+                    Environment.ProcessPath ?? throw new IOException("実行ファイルの場所を確認できません。"));
+            else await new CommandRunner().RunAsync(record, output, cancellation);
+        }
         catch (OperationCanceledException) { record.Status = ExecutionStatus.Cancelled; }
         catch (Exception error)
         {
@@ -138,7 +146,7 @@ public partial class MainWindow
         WorkspaceTabs.IsEnabled = !running;
         CloseTabButton.IsEnabled = !running && _workspaces.Count > 1;
         UpdateHistoryManagementControls();
-        CommandBox.IsEnabled = DirectoryBox.IsEnabled = ShellBox.IsEnabled = !running;
+        CommandBox.IsEnabled = DirectoryBox.IsEnabled = ShellBox.IsEnabled = AdministratorBox.IsEnabled = !running;
     }
 
     private void ExecutionTimer_Tick(object? sender, EventArgs e) => UpdateExecutionIndicator();

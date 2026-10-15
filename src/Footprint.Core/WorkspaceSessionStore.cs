@@ -50,7 +50,7 @@ public sealed class WorkspaceSessionStore(string path)
                 Window = session.Window,
                 Workspaces = session.Workspaces.Select(workspace => new WorkspaceState
                 {
-                    Title = workspace.Title, ShellIndex = workspace.ShellIndex,
+                    Title = workspace.Title, ShellIndex = workspace.ShellIndex, RunAsAdministrator = workspace.RunAsAdministrator,
                     WorkingDirectory = workspace.WorkingDirectory, Command = workspace.Command,
                     Output = workspace.Output
                 }).ToList()

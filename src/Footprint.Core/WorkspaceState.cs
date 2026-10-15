@@ -6,6 +6,7 @@ public sealed class WorkspaceState
 {
     public string Title { get; set; } = "新しいタブ";
     public int ShellIndex { get; set; }
+    public bool RunAsAdministrator { get; set; }
     public string WorkingDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     public string Command { get; set; } = "";
     [JsonConverter(typeof(CompressedOutputConverter))]

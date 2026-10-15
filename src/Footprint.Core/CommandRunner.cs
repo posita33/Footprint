@@ -11,6 +11,8 @@ public sealed class CommandRunner
     public async Task RunAsync(CommandRecord record, IProgress<string> output, CancellationToken cancellation)
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Windows が必要です。");
+        if (record.RunAsAdministrator && !ElevatedCommandRunner.IsElevated)
+            throw new InvalidOperationException("管理者権限が承認されていないため実行しませんでした。");
         string? script = null;
         try
         {
@@ -60,6 +62,7 @@ public sealed class CommandRunner
             cancellation.ThrowIfCancellationRequested();
             using var process = new Process { StartInfo = start };
             process.Start();
+            record.WasElevated = ElevatedCommandRunner.IsElevated;
             process.StandardInput.Close();
             // Kill synchronously on cancellation, including when the window is closing.
             using var registration = cancellation.Register(() =>

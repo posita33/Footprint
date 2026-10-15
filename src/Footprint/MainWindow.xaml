@@ -109,7 +109,11 @@
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="210" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,12,0">
-                        <TextBlock Text="シェル" Margin="0,0,0,4" />
+                        <DockPanel Margin="0,0,0,4">
+                            <CheckBox x:Name="AdministratorBox" Content="管理者実行" Foreground="{DynamicResource LabelForeground}" DockPanel.Dock="Right" Margin="10,0,0,0"
+                                      ToolTip="管理者権限でコマンドを実行します。WindowsのUAC確認が表示されます。" />
+                            <TextBlock Text="シェル" />
+                        </DockPanel>
                         <ComboBox x:Name="ShellBox" SelectedIndex="0" Padding="6">
                             <ComboBoxItem Content="コマンドプロンプト" /><ComboBoxItem Content="Windows PowerShell" />
                         </ComboBox>
@@ -247,6 +251,7 @@
                     <DataGridTextColumn Header="★" Binding="{Binding FavoriteLabel}" Width="35" />
                     <DataGridTextColumn Header="実行日時" Binding="{Binding TimeLabel}" Width="150" />
                     <DataGridTextColumn Header="シェル" Binding="{Binding ShellLabel}" Width="95" />
+                    <DataGridTextColumn Header="管理者" Binding="{Binding AdministratorLabel}" Width="65" />
                     <DataGridTextColumn Header="コマンド" Binding="{Binding Command}" Width="*" />
                     <DataGridTextColumn Header="作業フォルダー" Binding="{Binding WorkingDirectory}" Width="180" />
                     <DataGridTextColumn Header="結果" Binding="{Binding ResultLabel}" Width="100" />
