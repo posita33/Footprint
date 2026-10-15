@@ -12,6 +12,13 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (e.Args.Length > 0 && e.Args[0] == ElevatedCommandRunner.WorkerArgument)
+        {
+            try { Shutdown(e.Args.Length == 3 && int.TryParse(e.Args[2], out var parent)
+                    ? Task.Run(() => ElevatedCommandRunner.RunWorkerAsync(e.Args[1], parent)).GetAwaiter().GetResult() : 1); }
+            catch (Exception) { Shutdown(1); }
+            return;
+        }
         try { Settings = _settingsStore.Load(); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {

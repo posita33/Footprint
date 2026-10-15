@@ -13,6 +13,18 @@ internal static class NewUiFeatureChecks
 {
     public static void Run(MainWindow window)
     {
+        var admin = (CheckBox)window.FindName("AdministratorBox");
+        Require(admin.IsChecked != true, "Admin execution must be opt-in.");
+        var apply = typeof(MainWindow).GetMethod("ApplyWorkspace", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        apply.Invoke(window, [new Footprint.Core.WorkspaceState { RunAsAdministrator = true }]);
+        Require(admin.IsChecked == true, "Tabs must restore the administrator choice.");
+        var adminRunning = typeof(MainWindow).GetMethod("SetRunning", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        adminRunning.Invoke(window, [true]);
+        Require(!admin.IsEnabled, "Privilege mode must be locked during execution.");
+        adminRunning.Invoke(window, [false]);
+        apply.Invoke(window, [new Footprint.Core.WorkspaceState()]);
+        Require(((DataGrid)window.FindName("HistoryGrid")).Columns.Any(column => (string)column.Header == "管理者"),
+            "History must show administrator privileges.");
         var command = (TextBox)window.FindName("CommandBox");
         var wrap = (ToggleButton)window.FindName("CommandWrapButton");
         var format = (Button)window.FindName("FormatCommandButton");
@@ -38,12 +50,13 @@ internal static class NewUiFeatureChecks
             ((Button)window.FindName("OpenHistoryFolderButton")).ToolTip.ToString() == "履歴フォルダーを開く",
             "History folder must use an icon with an explanatory tooltip.");
         TestSavedToken();
-        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.8", "Current release version must be visible.");
+        Require(((TextBlock)window.FindName("VersionText")).Text == "v1.3.9", "Current release version must be visible.");
         var running = typeof(MainWindow).GetMethod("SetRunning", BindingFlags.Instance | BindingFlags.NonPublic)!;
         running.Invoke(window, [true]);
         Require(!format.IsEnabled && !((Button)window.FindName("UpdateApplicationButton")).IsEnabled && wrap.IsEnabled,
             "Running must disable formatting/updating while allowing presentation changes.");
         running.Invoke(window, [false]);
+        AdministratorHostChecks.Run();
         TestInstaller(false);
         TestInstaller(true);
         Console.WriteLine("PASS: wrap icons, horizontal scrolling, grouped formatting, undo, version, execution guards, installer swap and rollback");

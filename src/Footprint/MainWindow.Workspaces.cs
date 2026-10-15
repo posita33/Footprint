@@ -30,6 +30,7 @@ public partial class MainWindow
         if (_workspaces.Count == 0 || _activeWorkspaceIndex < 0) return;
         var workspace = _workspaces[_activeWorkspaceIndex];
         workspace.ShellIndex = ShellBox.SelectedIndex;
+        workspace.RunAsAdministrator = AdministratorBox.IsChecked == true;
         workspace.WorkingDirectory = DirectoryBox.Text;
         workspace.Command = CommandBox.Text;
         workspace.Output = _outputPages.FullText;
@@ -38,6 +39,7 @@ public partial class MainWindow
     private void ApplyWorkspace(WorkspaceState workspace)
     {
         ShellBox.SelectedIndex = workspace.ShellIndex;
+        AdministratorBox.IsChecked = workspace.RunAsAdministrator;
         DirectoryBox.Text = workspace.WorkingDirectory;
         CommandBox.Text = workspace.Command;
         SetOutput(workspace.Output);

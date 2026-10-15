@@ -13,6 +13,9 @@ public sealed class CommandRecord
     public string Command { get; set; } = "";
     public string WorkingDirectory { get; set; } = "";
     public ShellKind Shell { get; set; }
+    public bool RunAsAdministrator { get; set; }
+    public bool? WasElevated { get; set; }
+    public string AdministratorLabel => WasElevated switch { true => "管理者", false => "通常", null => "未確認" };
     public ExecutionStatus Status { get; set; }
     public int? ExitCode { get; set; }
     private string _output = "";
